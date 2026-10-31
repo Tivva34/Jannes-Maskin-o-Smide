@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { useState, useEffect, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { getPublicInventoryItems } from '../lib/inventoryService';
 import InventoryCard from '../components/InventoryCard';
 import QuoteModal from '../components/QuoteModal';
@@ -32,7 +32,7 @@ const InventoryPage = () => {
   const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' ? window.innerWidth < 768 : false);
   const [currentPage, setCurrentPage] = useState(0);
 
-  const scrollContainerRef = React.useRef(null);
+  const scrollContainerRef = useRef(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
 

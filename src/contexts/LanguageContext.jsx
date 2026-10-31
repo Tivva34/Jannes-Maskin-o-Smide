@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import { createContext, useContext, useState, useCallback } from 'react';
 import translations from '../i18n/translations';
 
 /* ─────────────────────────────────────────────────────────────
@@ -64,6 +64,7 @@ export const LanguageProvider = ({ children }) => {
  * useLang – consume the LanguageContext.
  * Must be used inside <LanguageProvider>.
  */
+// eslint-disable-next-line react-refresh/only-export-components
 export const useLang = () => {
   const ctx = useContext(LanguageContext);
   if (!ctx) throw new Error('useLang must be used inside <LanguageProvider>');

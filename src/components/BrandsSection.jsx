@@ -1,4 +1,3 @@
-import React from 'react';
 import { companyInfo } from '../data/company';
 import { useLang } from '../contexts/LanguageContext';
 

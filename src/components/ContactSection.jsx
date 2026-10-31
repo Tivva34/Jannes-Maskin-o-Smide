@@ -1,4 +1,3 @@
-import React from 'react';
 import { Phone, MapPin } from 'lucide-react';
 import ContactForm from './ContactForm';
 import { companyInfo } from '../data/company';

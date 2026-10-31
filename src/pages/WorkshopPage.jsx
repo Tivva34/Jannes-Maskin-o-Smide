@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import WorkshopSection from '../components/WorkshopSection';
 import ManufacturingSection from '../components/ManufacturingSection';
 import TransportSection from '../components/TransportSection';

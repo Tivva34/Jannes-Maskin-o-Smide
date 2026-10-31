@@ -1,8 +1,68 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, Sun, Moon } from 'lucide-react';
 import { companyInfo } from '../data/company';
 import { useLang } from '../contexts/LanguageContext';
+
+/* ── Language switcher button ─────────────────────────────── */
+const LangSwitch = ({ mobile = false, lang, setLang }) => (
+  <div style={{
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem',
+    fontSize: mobile ? '1.1rem' : '1rem',
+  }}>
+    <button
+      onClick={() => setLang('sv')}
+      aria-label="Svenska"
+      title="Svenska"
+      style={{
+        background: 'none',
+        border: 'none',
+        cursor: 'pointer',
+        padding: '0.25rem 0',
+        borderRadius: 'var(--radius-sm)',
+        opacity: lang === 'sv' ? 1 : 0.5,
+        transition: 'opacity var(--transition-fast)',
+        display: 'flex',
+        alignItems: 'center',
+      }}
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 10" width="22" style={{ borderRadius: '2px', display: 'block', boxShadow: '0 0 2px rgba(0,0,0,0.3)' }}>
+        <title>SE</title>
+        <rect width="16" height="10" fill="#005293" />
+        <rect x="5" width="2" height="10" fill="#fecb00" />
+        <rect y="4" width="16" height="2" fill="#fecb00" />
+      </svg>
+    </button>
+    <span style={{ color: 'var(--border-color)', userSelect: 'none', lineHeight: 1 }}>|</span>
+    <button
+      onClick={() => setLang('en')}
+      aria-label="English"
+      title="English"
+      style={{
+        background: 'none',
+        border: 'none',
+        cursor: 'pointer',
+        padding: '0.25rem 0',
+        borderRadius: 'var(--radius-sm)',
+        opacity: lang === 'en' ? 1 : 0.5,
+        transition: 'opacity var(--transition-fast)',
+        display: 'flex',
+        alignItems: 'center',
+      }}
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 30" width="22" style={{ borderRadius: '2px', display: 'block', boxShadow: '0 0 2px rgba(0,0,0,0.3)' }}>
+        <title>EN</title>
+        <rect width="60" height="30" fill="#012169"/>
+        <path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" strokeWidth="6"/>
+        <path d="M0,0 L60,30 M60,0 L0,30" stroke="#C8102E" strokeWidth="4"/>
+        <path d="M30,0 V30 M0,15 H60" stroke="#fff" strokeWidth="10"/>
+        <path d="M30,0 V30 M0,15 H60" stroke="#C8102E" strokeWidth="6"/>
+      </svg>
+    </button>
+  </div>
+);
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -12,6 +72,13 @@ const Navbar = () => {
   });
   const location = useLocation();
   const { lang, setLang, t } = useLang();
+  const [prevPathname, setPrevPathname] = useState(location.pathname);
+
+  // Close mobile menu on route change
+  if (location.pathname !== prevPathname) {
+    setPrevPathname(location.pathname);
+    setMobileMenuOpen(false);
+  }
 
   // Scroll detection
   useEffect(() => {
@@ -19,11 +86,6 @@ const Navbar = () => {
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-
-  // Close mobile menu on route change
-  useEffect(() => {
-    setMobileMenuOpen(false);
-  }, [location.pathname]);
 
   // Lock body scroll when menu is open – without layout shift
   useEffect(() => {
@@ -84,66 +146,6 @@ const Navbar = () => {
     return location.pathname.startsWith(to);
   };
 
-  /* ── Language switcher button ─────────────────────────────── */
-  const LangSwitch = ({ mobile = false }) => (
-    <div style={{
-      display: 'flex',
-      alignItems: 'center',
-      gap: '0.5rem',
-      fontSize: mobile ? '1.1rem' : '1rem',
-    }}>
-      <button
-        onClick={() => setLang('sv')}
-        aria-label="Svenska"
-        title="Svenska"
-        style={{
-          background: 'none',
-          border: 'none',
-          cursor: 'pointer',
-          padding: '0.25rem 0',
-          borderRadius: 'var(--radius-sm)',
-          opacity: lang === 'sv' ? 1 : 0.5,
-          transition: 'opacity var(--transition-fast)',
-          display: 'flex',
-          alignItems: 'center',
-        }}
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 10" width="22" style={{ borderRadius: '2px', display: 'block', boxShadow: '0 0 2px rgba(0,0,0,0.3)' }}>
-          <title>SE</title>
-          <rect width="16" height="10" fill="#005293" />
-          <rect x="5" width="2" height="10" fill="#fecb00" />
-          <rect y="4" width="16" height="2" fill="#fecb00" />
-        </svg>
-      </button>
-      <span style={{ color: 'var(--border-color)', userSelect: 'none', lineHeight: 1 }}>|</span>
-      <button
-        onClick={() => setLang('en')}
-        aria-label="English"
-        title="English"
-        style={{
-          background: 'none',
-          border: 'none',
-          cursor: 'pointer',
-          padding: '0.25rem 0',
-          borderRadius: 'var(--radius-sm)',
-          opacity: lang === 'en' ? 1 : 0.5,
-          transition: 'opacity var(--transition-fast)',
-          display: 'flex',
-          alignItems: 'center',
-        }}
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 30" width="22" style={{ borderRadius: '2px', display: 'block', boxShadow: '0 0 2px rgba(0,0,0,0.3)' }}>
-          <title>EN</title>
-          <rect width="60" height="30" fill="#012169"/>
-          <path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" strokeWidth="6"/>
-          <path d="M0,0 L60,30 M60,0 L0,30" stroke="#C8102E" strokeWidth="4"/>
-          <path d="M30,0 V30 M0,15 H60" stroke="#fff" strokeWidth="10"/>
-          <path d="M30,0 V30 M0,15 H60" stroke="#C8102E" strokeWidth="6"/>
-        </svg>
-      </button>
-    </div>
-  );
-
   return (
     <>
       {/* ── HEADER ──────────────────────────────────────────────── */}
@@ -199,7 +201,7 @@ const Navbar = () => {
 
             {/* Language switcher – desktop */}
             <div className="desktop-nav">
-              <LangSwitch />
+              <LangSwitch lang={lang} setLang={setLang} />
             </div>
 
             {/* Theme toggle – always visible */}
@@ -386,7 +388,7 @@ const Navbar = () => {
 
           {/* Language switcher – mobile */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginTop: '0.25rem' }}>
-            <LangSwitch mobile />
+            <LangSwitch mobile lang={lang} setLang={setLang} />
           </div>
 
           {/* Theme toggle */}

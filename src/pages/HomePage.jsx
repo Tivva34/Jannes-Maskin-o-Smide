@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Hero from '../components/Hero';
 import TrustSection from '../components/TrustSection';
 import ContactModal from '../components/ContactModal';

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Phone, Calendar, Tag, ChevronRight, X, ChevronLeft } from 'lucide-react';
 import { getMachineBySlug, getSimilarMachines } from '../lib/machinesService';
@@ -26,12 +26,7 @@ const MachineDetailsPage = () => {
   };
   
   const [contactModalOpen, setContactModalOpen] = useState(false);
-  const [contactModalSubject, setContactModalSubject] = useState('');
-  
-  const handleOpenContactModal = (subject) => {
-    setContactModalSubject(subject);
-    setContactModalOpen(true);
-  };
+  const [contactModalSubject] = useState('');
   const [touchEnd, setTouchEnd] = useState(null);
   const { t, tDb, lang } = useLang();
 
@@ -80,7 +75,7 @@ const MachineDetailsPage = () => {
       setLoading(false);
     };
     fetchMachine();
-  }, [slug, t, lang]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [slug, t, lang]);
 
   useEffect(() => {
     if (machine) {

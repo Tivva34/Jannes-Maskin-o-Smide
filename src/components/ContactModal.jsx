@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { X, Phone } from 'lucide-react';
 import ContactForm from './ContactForm';
 import { companyInfo } from '../data/company';
