@@ -1,4 +1,3 @@
-import React from 'react';
 import { Settings, Tractor, MapPin } from 'lucide-react';
 import { useLang } from '../contexts/LanguageContext';
 

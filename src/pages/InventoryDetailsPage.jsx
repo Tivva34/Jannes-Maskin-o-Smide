@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, ChevronRight, X, ChevronLeft, Image as ImageIcon, Phone } from 'lucide-react';
+import { ArrowLeft, ChevronRight, X, ChevronLeft, Phone } from 'lucide-react';
 import { getInventoryItemBySlugOrId, getSimilarInventoryItems } from '../lib/inventoryService';
 import { useLang } from '../contexts/LanguageContext';
 import QuoteModal from '../components/QuoteModal';

@@ -4,7 +4,7 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: '/JannesMaskin/',
+  base: '/Jannes-Maskin-o-Smide/',
   plugins: [
     {
       name: 'fix-admin-manifest',
@@ -38,7 +38,7 @@ export default defineConfig({
         theme_color: '#1e2123',
         background_color: '#1e2123',
         display: 'standalone',
-        start_url: '/JannesMaskin/',
+        start_url: '/Jannes-Maskin-o-Smide/',
         icons: [
           {
             src: 'favicon.svg',

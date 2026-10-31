@@ -1,10 +1,8 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
 import { companyInfo } from '../data/company';
 import { useLang } from '../contexts/LanguageContext';
 
 const Footer = () => {
-  const currentYear = new Date().getFullYear();
   const { t } = useLang();
 
   return (

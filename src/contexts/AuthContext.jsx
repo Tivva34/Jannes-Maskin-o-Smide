@@ -1,10 +1,10 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser]       = useState(null);
+  const [user, setUser] = useState(null);
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState(null);
@@ -17,13 +17,13 @@ export const AuthProvider = ({ children }) => {
         if (mounted) setProfile(null);
         return;
       }
-      
+
       const { data, error } = await supabase
         .from('user_profiles')
         .select('*')
         .eq('id', currentUser.id)
         .single();
-        
+
       if (mounted) {
         if (!error && data) {
           setProfile(data);
@@ -66,7 +66,7 @@ export const AuthProvider = ({ children }) => {
       setSession(session);
       setUser(session?.user ?? null);
       fetchProfile(session?.user ?? null);
-      
+
       // If Supabase successfully processes a recovery link, route the user manually
       // This avoids HashRouter conflicts with Supabase's implicit flow tokens in the URL hash.
       if (event === 'PASSWORD_RECOVERY') {
@@ -107,13 +107,13 @@ export const AuthProvider = ({ children }) => {
   const resetPassword = async (email) => {
     const baseUrl = window.location.origin;
     const basePath = import.meta.env.BASE_URL || '/';
-    
+
     // We send the user to the ROOT of the application, NOT directly to the hash route.
     // This allows Supabase to put the tokens cleanly in the hash (#access_token=...) 
     // or query string (?code=...) without colliding with React HashRouter's own routes.
     // The onAuthStateChange listener will catch 'PASSWORD_RECOVERY' and navigate correctly.
     const redirectUrl = `${baseUrl}${basePath}`.replace(/([^:]\/)\/+/g, "$1");
-    
+
     const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: redirectUrl,
     });
@@ -141,6 +141,7 @@ export const AuthProvider = ({ children }) => {
  * useAuth – consume the AuthContext.
  * Throws if used outside of <AuthProvider>.
  */
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {

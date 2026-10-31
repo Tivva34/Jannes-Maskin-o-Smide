@@ -1,4 +1,3 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
 import { Wrench, Hammer, Settings } from 'lucide-react';
 import { useLang } from '../contexts/LanguageContext';
