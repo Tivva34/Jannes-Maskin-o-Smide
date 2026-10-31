@@ -1,9 +1,8 @@
 import React, { useEffect, useState, Suspense } from 'react';
-import { HashRouter, Routes, Route, useLocation, useNavigationType, Navigate, matchPath, Link } from 'react-router-dom';
+import { HashRouter, Routes, Route, useLocation, useNavigationType, Navigate, matchPath } from 'react-router-dom';
 import { supabase } from './lib/supabase';
 import { AuthProvider } from './contexts/AuthContext';
-import { LanguageProvider, useLang } from './contexts/LanguageContext';
-import ProtectedRoute from './components/ProtectedRoute';
+import { LanguageProvider } from './contexts/LanguageContext';
 
 // Public layout components
 import Navbar from './components/Navbar';
@@ -35,7 +34,7 @@ const ScrollToTop = () => {
     if (navType !== 'POP') {
       window.scrollTo(0, 0);
     }
-  }, [location.pathname, location.key]);
+  }, [location.pathname, location.key, navType]);
 
   return null;
 };
@@ -82,21 +81,6 @@ const SUBPAGE_ROUTES = [
   '/losore/:slug',
 ];
 
-// Translated mobile CTA bar (must be inside LanguageProvider)
-const MobileCta = () => {
-  const { t } = useLang();
-  return (
-    <div className="mobile-cta-fixed">
-      <a href="tel:+46700000003" className="btn btn-primary" style={{ flex: 1, borderRadius: 0, padding: '1rem' }}>
-        {t('mobileCta.call')}
-      </a>
-        <Link to="/maskiner" className="btn btn-secondary" style={{ flex: 1, borderRadius: 0, padding: '1rem', backgroundColor: 'var(--bg-primary)', display: 'flex', justifyContent: 'center', alignItems: 'center', textDecoration: 'none' }}>
-          {t('mobileCta.machines')}
-        </Link>
-    </div>
-  );
-};
-
 // ─────────────────────────────────────────────────────────────────────────────
 // PUBLIC LAYOUT – Navbar + public routes + Footer + mobile CTA
 // ─────────────────────────────────────────────────────────────────────────────
@@ -137,11 +121,6 @@ function PublicLayout() {
          * Subpage top offset.
          * Compensates for the fixed header so content never slides behind the navbar.
          */
-
-        /*
-         * Subpage top offset.
-         * Compensates for the fixed header so content never slides behind the navbar.
-         */
         @media (max-width: 1023px) {
           .subpage-main {
             padding-top: 80px;
@@ -169,7 +148,17 @@ function App() {
     return hash.includes('type=recovery') || hash.includes('type=invite') || hash.includes('access_token=') || search.includes('code=');
   });
 
-  const [diagnosticLogs, setDiagnosticLogs] = useState([]);
+  const [diagnosticLogs, setDiagnosticLogs] = useState(() => {
+    const hash = window.location.hash || '';
+    const search = window.location.search || '';
+    const recovering = hash.includes('type=recovery') || hash.includes('type=invite') || hash.includes('access_token=') || search.includes('code=');
+    if (!recovering) return [];
+    return [
+      "current URL: " + window.location.href,
+      "current hash (maskerad): " + hash.replace(/=(.*?)(&|$)/g, "=***$2"),
+      "Waiting for Supabase to process recovery URL..."
+    ];
+  });
   
   const addLog = (msg) => {
     console.log("[Auth Flow]", msg);
@@ -178,10 +167,6 @@ function App() {
 
   useEffect(() => {
     if (isRecovering) {
-      addLog("current URL: " + window.location.href);
-      addLog("current hash (maskerad): " + window.location.hash.replace(/=(.*?)(&|$)/g, "=***$2"));
-      addLog("Waiting for Supabase to process recovery URL...");
-      
       const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
         addLog(`Auth event received: ${event}`);
         

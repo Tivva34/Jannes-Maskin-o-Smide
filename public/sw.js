@@ -8,7 +8,6 @@ import { precacheAndRoute, cleanupOutdatedCaches } from "workbox-precaching";
 import { clientsClaim } from "workbox-core";
 
 // Workbox injicerar precache-listan här vid build
-// eslint-disable-next-line no-undef
 precacheAndRoute(self.__WB_MANIFEST || []);
 cleanupOutdatedCaches();
 
@@ -36,10 +35,10 @@ self.addEventListener("push", (event) => {
   const title = data.title || "Jannes Maskin & Smide";
   const options = {
     body:              data.body || "",
-    icon:              data.icon || "/JannesMaskin/pwa-192x192.png",
-    badge:             data.badge || "/JannesMaskin/pwa-192x192.png",
+    icon:              data.icon || "/Jannes-Maskin-o-Smide/pwa-192x192.png",
+    badge:             data.badge || "/Jannes-Maskin-o-Smide/pwa-192x192.png",
     tag:               data.tag  || "jms-push",
-    data:              { url: data.url || "/JannesMaskin/admin.html#/admin" },
+    data:              { url: data.url || "/Jannes-Maskin-o-Smide/admin.html#/admin" },
     requireInteraction: false,
     silent:            false,
     vibrate:           [200, 100, 200],
@@ -81,7 +80,7 @@ self.addEventListener("notificationclick", (event) => {
   event.notification.close();
 
   const targetUrl = event.notification.data?.url
-    || "/JannesMaskin/admin.html#/admin";
+    || "/Jannes-Maskin-o-Smide/admin.html#/admin";
 
   event.waitUntil(
     self.clients
