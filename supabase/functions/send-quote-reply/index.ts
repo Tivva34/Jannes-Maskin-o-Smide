@@ -9,6 +9,16 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+interface QuoteRequestRow {
+  id: string;
+  email: string;
+  status: string;
+  name: string;
+  machine: { name: string } | null;
+  inventory_item: { name: string } | null;
+  request_type: string | null;
+}
+
 serve(async (req) => {
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
@@ -118,7 +128,7 @@ serve(async (req) => {
       .from("quote_requests")
       .select("id, email, status, name, machine:machines(name), inventory_item:inventory_items(name), request_type")
       .eq("id", quote_request_id)
-      .single();
+      .single<QuoteRequestRow>();
 
     if (quoteError || !quote) {
       console.error("Quote fetch error:", quoteError);
@@ -201,12 +211,12 @@ serve(async (req) => {
               .storage
               .from('quote-attachments')
               .download(att.path);
-              
+
             if (downloadError || !fileData) {
               console.error(`Failed to download attachment ${att.path}:`, downloadError);
               continue;
             }
-            
+
             // Convert Blob to Uint8Array for Nodemailer
             const arrayBuffer = await fileData.arrayBuffer();
             mailAttachments.push({
@@ -274,10 +284,10 @@ serve(async (req) => {
 
     // ── 10. Return success ────────────────────────────────────────────────────
     const emailMessage =
-      emailStatus === "sent"            ? "Svaret sparades och skickades till kunden." :
-      emailStatus === "sent_test_mode"  ? "Svaret sparades. Testläge: e-post skickades till testadress." :
-      emailStatus === "failed"          ? "Svaret sparades i systemet, men e-post kunde inte skickas." :
-      /* not_configured */                "Svaret sparades i systemet. E-post är inte konfigurerat.";
+      emailStatus === "sent" ? "Svaret sparades och skickades till kunden." :
+        emailStatus === "sent_test_mode" ? "Svaret sparades. Testläge: e-post skickades till testadress." :
+          emailStatus === "failed" ? "Svaret sparades i systemet, men e-post kunde inte skickas." :
+      /* not_configured */               "Svaret sparades i systemet. E-post är inte konfigurerat.";
 
     return new Response(
       JSON.stringify({

@@ -39,7 +39,7 @@ const PREFERENCE_MAP: Record<string, string> = {
 // VAPID / Web Push helpers
 // ---------------------------------------------------------------------------
 
-function base64UrlDecode(str: string): Uint8Array {
+function base64UrlDecode(str: string): Uint8Array<ArrayBuffer> {
   // Normalize padding
   const padded = str.replace(/-/g, "+").replace(/_/g, "/");
   const pad = padded.length % 4;
@@ -52,7 +52,7 @@ function base64UrlDecode(str: string): Uint8Array {
   return bytes;
 }
 
-function base64UrlEncode(buffer: ArrayBuffer): string {
+function base64UrlEncode(buffer: ArrayBuffer | Uint8Array): string {
   const bytes = new Uint8Array(buffer);
   let binary = "";
   for (const b of bytes) binary += String.fromCharCode(b);
@@ -137,7 +137,7 @@ interface PushSubscription {
 async function encryptPushPayload(
   subscription: PushSubscription,
   payloadStr: string
-): Promise<{ body: Uint8Array; salt: Uint8Array; serverPublicKey: CryptoKey }> {
+): Promise<{ body: Uint8Array<ArrayBuffer>; salt: Uint8Array<ArrayBuffer>; serverPublicKey: CryptoKey }> {
   const salt = crypto.getRandomValues(new Uint8Array(16));
   const serverKeyPair = await crypto.subtle.generateKey(
     { name: "ECDH", namedCurve: "P-256" },
@@ -230,7 +230,7 @@ async function sendWebPush(
   vapidPublicKeyB64: string,
   vapidPrivateKey: CryptoKey,
   vapidSubject: string
-): Promise<{ ok: boolean; status: number; permanent: boolean }> {
+): Promise<{ ok: boolean; status: number; permanent: boolean; errorText?: string }> {
   const endpoint = subscription.endpoint;
   const url = new URL(endpoint);
   const audience = `${url.protocol}//${url.host}`;
@@ -243,7 +243,7 @@ async function sendWebPush(
     return { ok: false, status: 0, permanent: false, errorText: "JWT build failed: " + (e as Error).message };
   }
 
-  let encryptedBody: Uint8Array;
+  let encryptedBody: Uint8Array<ArrayBuffer>;
   try {
     const { body } = await encryptPushPayload(subscription, JSON.stringify(payloadJson));
     encryptedBody = body;
@@ -326,7 +326,7 @@ function buildNotificationPayload(
     type: "new_quote_request",
     title,
     body,
-    url: `/JannesMaskin/admin.html#/admin?tab=quotes&quote=${quoteRequestId}`,
+    url: `/Jannes-Maskin-o-Smide/admin.html#/admin?tab=quotes&quote=${quoteRequestId}`,
     quote_request_id: quoteRequestId,
     tag: `quote-new-${quoteRequestId}`,
   };
@@ -387,7 +387,7 @@ serve(async (req) => {
   const vapidPublicKeyB64  = Deno.env.get("VAPID_PUBLIC_KEY") ?? Deno.env.get("vapid_public_key") ?? "";
   const vapidPrivateKeyB64 = Deno.env.get("VAPID_PRIVATE_KEY") ?? Deno.env.get("vapid_private_key") ?? "";
   const vapidSubject       = Deno.env.get("VAPID_SUBJECT") ?? Deno.env.get("vapid_subject") ?? "mailto:info@jannesmaskin.example";
-  const basePath           = Deno.env.get("BASE_PATH") ?? "/JannesMaskin";
+  const basePath           = Deno.env.get("BASE_PATH") ?? "/Jannes-Maskin-o-Smide";
 
   if (!vapidPublicKeyB64 || !vapidPrivateKeyB64) {
     console.error("[send-push] VAPID keys not configured");
@@ -550,7 +550,7 @@ serve(async (req) => {
     });
   }
 
-  const userIds = prefs.map((p: Record<string, unknown>) => p.user_id as string);
+  const userIds = (prefs as unknown as Record<string, unknown>[]).map((p) => p.user_id as string);
 
   // ── 8. Fetch push subscriptions for those users ───────────────────────────
   const { data: subscriptions, error: subsError } = await supabaseAdmin
