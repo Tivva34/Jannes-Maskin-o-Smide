@@ -1,15 +1,22 @@
-import React, { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import QuoteRequestForm from './QuoteRequestForm';
 
 const QuoteModal = ({ isOpen, onClose, preselectedType, machine, inventoryItem }) => {
-  const [formStatus, setFormStatus] = React.useState('idle');
+  const [formStatus, setFormStatus] = useState('idle');
+  const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
 
-  // Prevent background scroll when open
+  if (isOpen !== prevIsOpen) {
+    setPrevIsOpen(isOpen);
+    if (isOpen) {
+      setFormStatus('idle');   // Prevent background scroll when open
+    }
+  }
+
+// Reset status on open
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
-      setFormStatus('idle'); // Reset status on open
     } else {
       document.body.style.overflow = '';
     }

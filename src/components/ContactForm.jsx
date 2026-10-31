@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { CheckCircle } from 'lucide-react';
 import { useLang } from '../contexts/LanguageContext';
 import { createQuoteRequest } from '../lib/quoteService';
@@ -11,10 +11,12 @@ const ContactForm = ({ preselectedSubject = '' }) => {
     subject: preselectedSubject,
     message: ''
   });
+  const [prevSubject, setPrevSubject] = useState(preselectedSubject);
 
-  useEffect(() => {
+  if (preselectedSubject !== prevSubject) {
+    setPrevSubject(preselectedSubject);
     setFormData(prev => ({ ...prev, subject: preselectedSubject }));
-  }, [preselectedSubject]);
+  }
   
   const [status, setStatus] = useState('idle'); // idle | submitting | success | error
   const [errorMsg, setErrorMsg] = useState('');

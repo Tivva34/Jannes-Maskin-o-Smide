@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { CheckCircle, Phone } from 'lucide-react';
 import { useLang } from '../contexts/LanguageContext';
 import { createQuoteRequest } from '../lib/quoteService';
@@ -17,11 +17,13 @@ const QuoteRequestForm = ({ preselectedType = 'other', machine = null, inventory
   
   const [status, setStatus] = useState('idle'); // idle | submitting | success | error
   const [errorMsg, setErrorMsg] = useState('');
+  const [prevType, setPrevType] = useState(preselectedType);
 
   // Always keep request_type in sync with preselectedType if it changes
-  useEffect(() => {
+  if (preselectedType !== prevType) {
+    setPrevType(preselectedType);
     setFormData(prev => ({ ...prev, request_type: preselectedType }));
-  }, [preselectedType]);
+  }
 
   // Determine dynamic heading and CTA based on context
   let heading = t('quote.headingDefault');
