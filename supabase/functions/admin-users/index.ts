@@ -293,12 +293,8 @@ serve(async (req) => {
       }
 
       // Send the resend invite
-      const { error: resendError } = await supabaseAdmin.auth.resend({
-        type: 'invite',
-        email: email,
-        options: {
-          redirectTo
-        }
+      const { error: resendError } = await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
+        redirectTo,
       });
 
       if (resendError) throw new HttpError(resendError.message, 500);
