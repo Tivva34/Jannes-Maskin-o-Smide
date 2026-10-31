@@ -140,10 +140,9 @@ export function generateSlug(name) {
  */
 export async function ensureUniqueSlug(baseSlug, excludeId = null) {
   let slug = baseSlug;
-  let isUnique = false;
   let counter = 1;
 
-  while (!isUnique) {
+  while (true) {
     let query = supabase
       .from('inventory_items')
       .select('id')
@@ -156,15 +155,12 @@ export async function ensureUniqueSlug(baseSlug, excludeId = null) {
     const { data, error } = await query;
     
     if (error || !data || data.length === 0) {
-      isUnique = true;
       return slug;
     }
     
     slug = `${baseSlug}-${counter}`;
     counter++;
   }
-  
-  return slug;
 }
 
 /**
@@ -269,7 +265,6 @@ export async function uploadInventoryImage(itemId, file) {
     return { error: new Error(`Filen är för stor. Max ${MAX_IMAGE_SIZE_MB} MB.`) };
   }
 
-  const fileExt = file.name.split('.').pop();
   const safeName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, '');
   const timestamp = Date.now();
   const randomStr = Math.random().toString(36).substring(2, 8);

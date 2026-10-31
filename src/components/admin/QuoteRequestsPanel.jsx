@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   getQuoteRequests,
   updateQuoteStatus,
@@ -11,7 +11,7 @@ import {
 } from '../../lib/quoteService';
 import { supabase } from '../../lib/supabase';
 import { stripTextQuotes } from '../../lib/emailUtils';
-import { RefreshCw, Search, Mail, Phone, ExternalLink, X, Calendar, User, Tag, FileText, Paperclip, Trash2, Image as ImageIcon } from 'lucide-react';
+import { RefreshCw, Mail, Phone, ExternalLink, X, User, Tag, FileText, Paperclip, Trash2, Image as ImageIcon } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import translations from '../../i18n/translations';
@@ -119,15 +119,35 @@ const QuoteRequestsPanel = ({ onQuotesUpdated }) => {
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(null);
 
+  const loadRequests = useCallback(async (silent) => {
+    const isSilent = silent === true;
+    if (!isSilent) setLoading(true);
+    setError('');
+    const { data, error: err } = await getQuoteRequests();
+    if (err) {
+      setError('Kunde inte hämta förfrågningar: ' + err.message);
+    } else {
+      setRequests(data ?? []);
+
+        // Auto-update selectedRequest if it's currently open
+      setSelectedRequest(prev => {
+        if (!prev) return null;
+        const updatedReq = data?.find(r => r.id === prev.id);
+        return updatedReq || prev;
+      });
+    }
+    if (!isSilent) setLoading(false);
+  }, []);
+
   useEffect(() => {
-    // Lyssnar på det globala notis-eventet
+  // Lyssnar på det globala notis-eventet
     const handleNewMessage = () => loadRequests(true);
     window.addEventListener('admin_quote_message_inserted', handleNewMessage);
     
     return () => {
       window.removeEventListener('admin_quote_message_inserted', handleNewMessage);
     };
-  }, []);
+  }, [loadRequests]);
 
   const [replyText, setReplyText] = useState(() => sessionStorage.getItem('quote_reply_text') || '');
   const [selectedFiles, setSelectedFiles] = useState([]);
@@ -137,7 +157,7 @@ const QuoteRequestsPanel = ({ onQuotesUpdated }) => {
   const [replyEmailStatus, setReplyEmailStatus] = useState(''); // message from backend about email
 
   const [openDropdown, setOpenDropdown] = useState(null);
-  const filterMenuRef = React.useRef(null);
+  const filterMenuRef = useRef(null);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -152,16 +172,14 @@ const QuoteRequestsPanel = ({ onQuotesUpdated }) => {
   }, []);
 
   // Keep selectedRequest synced with URL parameter ?quote=ID
-  useEffect(() => {
-    if (quoteIdParam && requests.length > 0) {
-      const req = requests.find(r => r.id === quoteIdParam);
-      if (req && (!selectedRequest || selectedRequest.id !== req.id)) {
-        setSelectedRequest(req);
-      }
-    } else if (!quoteIdParam && selectedRequest) {
-      setSelectedRequest(null);
+  if (quoteIdParam && requests.length > 0) {
+    const req = requests.find(r => r.id === quoteIdParam);
+    if (req && (!selectedRequest || selectedRequest.id !== req.id)) {
+      setSelectedRequest(req);
     }
-  }, [quoteIdParam, requests, selectedRequest]);
+  } else if (!quoteIdParam && selectedRequest) {
+    setSelectedRequest(null);
+  }
 
   const handleOpenQuote = (req) => {
     setSearchParams(prev => { prev.set('quote', req.id); return prev; }, { replace: true });
@@ -172,9 +190,9 @@ const QuoteRequestsPanel = ({ onQuotesUpdated }) => {
   };
 
   // Clear reply state when changing selected request
-  useEffect(() => {
-    // Only clear if we actually switch requests, not on mount.
-    // We already read from sessionStorage on initial load.
+  const [prevSelectedId, setPrevSelectedId] = useState(selectedRequest?.id);
+  if (selectedRequest?.id !== prevSelectedId) {
+    setPrevSelectedId(selectedRequest?.id);
     if (selectedRequest?.id) {
       const savedText = sessionStorage.getItem(`quote_reply_text_${selectedRequest.id}`);
       setReplyText(savedText || '');
@@ -183,7 +201,7 @@ const QuoteRequestsPanel = ({ onQuotesUpdated }) => {
     setReplySuccess(false);
     setReplyEmailStatus('');
     setSelectedFiles([]);
-  }, [selectedRequest?.id]);
+  }
 
   useEffect(() => {
     if (selectedRequest?.id) {
@@ -205,36 +223,15 @@ const QuoteRequestsPanel = ({ onQuotesUpdated }) => {
     if (onQuotesUpdated) onQuotesUpdated(newCount, actionCount);
   }, [requests, onQuotesUpdated]);
 
-  const loadRequests = useCallback(async (silent = false) => {
-    const isSilent = silent === true;
-    if (!isSilent) setLoading(true);
-    setError('');
-    const { data, error: err } = await getQuoteRequests();
-    if (err) {
-      setError('Kunde inte hämta förfrågningar: ' + err.message);
-    } else {
-      setRequests(data ?? []);
-
-      // Auto-update selectedRequest if it's currently open
-      setSelectedRequest(prev => {
-        if (!prev) return null;
-        const updatedReq = data?.find(r => r.id === prev.id);
-        return updatedReq || prev;
-      });
-    }
-    if (!isSilent) setLoading(false);
-  }, []);
-
   useEffect(() => {
-    loadRequests();
-
+    Promise.resolve().then(() => loadRequests());
 
     const channelRequests = supabase
       .channel('public:quote_requests')
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'quote_requests' },
-        (payload) => {
+        () => {
           loadRequests(true);
         }
       )
@@ -359,7 +356,7 @@ const QuoteRequestsPanel = ({ onQuotesUpdated }) => {
 
   const filteredRequests = requests.filter(req => {
     // Status filter
-    let statusMatch = false;
+    let statusMatch;
     if (filter === 'all') {
       statusMatch = true;
     } else if (filter === 'needs_reply') {

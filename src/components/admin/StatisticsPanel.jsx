@@ -1,14 +1,67 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, 
   PieChart, Pie, Cell, Legend, LineChart, Line
 } from 'recharts';
-import { PackageOpen, MessageSquare, TrendingUp, Archive, ShieldAlert, CheckCircle, DollarSign, Percent } from 'lucide-react';
+import { PackageOpen, MessageSquare, TrendingUp, Archive, CheckCircle } from 'lucide-react';
 
 import { getMachines, getStatusLabel, getStatusColor } from '../../lib/machinesService';
 import { getInventoryItems } from '../../lib/inventoryService';
 import { getQuoteRequests, QUOTE_STATUS_OPTIONS } from '../../lib/quoteService';
 import translations from '../../i18n/translations';
+
+const KPICard = ({ title, subtitle, value, icon: Icon, color, onClick, noData }) => (
+  <div 
+    onClick={!noData ? onClick : undefined}
+    style={{
+      backgroundColor: 'var(--bg-surface)',
+      border: '1px solid var(--border-color)',
+      borderRadius: '12px',
+      padding: '1.5rem',
+      display: 'flex',
+      alignItems: 'flex-start',
+      justifyContent: 'space-between',
+      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)',
+      cursor: (!noData && onClick) ? 'pointer' : 'default',
+      transition: 'transform 0.2s, box-shadow 0.2s',
+      height: '100%',
+      minHeight: '130px'
+    }}
+    onMouseEnter={e => { if (!noData && onClick) { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 12px -2px rgba(0,0,0,0.1)' } }}
+    onMouseLeave={e => { if (!noData && onClick) { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.05)' } }}
+  >
+    <div style={{ flex: 1, paddingRight: '1rem', minWidth: 0 }}>
+      <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 0.25rem 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{title}</p>
+      {subtitle && <p style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', margin: '0 0 0.5rem 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{subtitle}</p>}
+      {noData ? (
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', margin: subtitle ? 0 : '0.5rem 0 0 0', fontStyle: 'italic' }}>Ingen data för vald period</p>
+      ) : (
+        <h3 style={{ color: 'var(--text-primary)', fontSize: '2rem', fontWeight: 700, margin: 0, fontFamily: 'Outfit, sans-serif' }}>{value}</h3>
+      )}
+    </div>
+    <div style={{ backgroundColor: `${color}15`, padding: '0.75rem', borderRadius: '12px', flexShrink: 0 }}>
+      <Icon color={color} size={24} />
+    </div>
+  </div>
+);
+
+const ChartCard = ({ title, children, minHeight = '350px' }) => (
+  <div style={{
+    backgroundColor: 'var(--bg-surface)',
+    border: '1px solid var(--border-color)',
+    borderRadius: '12px',
+    padding: '1.5rem',
+    display: 'flex',
+    flexDirection: 'column',
+    height: '100%',
+    minHeight
+  }}>
+    <h3 style={{ margin: '0 0 1.5rem 0', fontSize: '1.125rem', color: 'var(--text-primary)', fontWeight: 600 }}>{title}</h3>
+    <div style={{ flex: 1, minHeight: 0 }}>
+      {children}
+    </div>
+  </div>
+);
 
 export default function StatisticsPanel({ onNavigate }) {
   const [machines, setMachines] = useState([]);
@@ -62,11 +115,11 @@ export default function StatisticsPanel({ onNavigate }) {
   };
 
   // Time filtering logic for items created within the period
-  const filterByDate = (items) => {
+  const filterByDate = useCallback((items) => {
     if (timeFilter === 'all') return items;
     
     if (timeFilter.startsWith('month-')) {
-      const [_, year, month] = timeFilter.split('-');
+      const [, year, month] = timeFilter.split('-');
       const startDate = new Date(parseInt(year), parseInt(month) - 1, 1);
       const endDate = new Date(parseInt(year), parseInt(month), 0, 23, 59, 59, 999);
       
@@ -80,7 +133,7 @@ export default function StatisticsPanel({ onNavigate }) {
     const days = parseInt(timeFilter, 10);
     const cutoff = new Date(now.setDate(now.getDate() - days));
     return items.filter(item => new Date(item.created_at) >= cutoff);
-  };
+  }, [timeFilter]);
 
 
   // KPIs
@@ -90,7 +143,7 @@ export default function StatisticsPanel({ onNavigate }) {
   const isHistorical = useMemo(() => {
     if (isAllTime || ['7', '30', '90', '365'].includes(timeFilter)) return false;
     if (timeFilter.startsWith('month-')) {
-      const [_, yearStr, monthStr] = timeFilter.split('-');
+      const [, yearStr, monthStr] = timeFilter.split('-');
       const now = new Date();
       if (parseInt(yearStr, 10) === now.getFullYear() && parseInt(monthStr, 10) === now.getMonth() + 1) {
         return false;
@@ -102,7 +155,7 @@ export default function StatisticsPanel({ onNavigate }) {
 
   const isCurrentMonth = useMemo(() => {
     if (timeFilter.startsWith('month-')) {
-      const [_, yearStr, monthStr] = timeFilter.split('-');
+      const [, yearStr, monthStr] = timeFilter.split('-');
       const now = new Date();
       return parseInt(yearStr, 10) === now.getFullYear() && parseInt(monthStr, 10) === now.getMonth() + 1;
     }
@@ -118,10 +171,10 @@ export default function StatisticsPanel({ onNavigate }) {
   const newQuotesAll = quotes.filter(q => q.status === 'new').length;
 
   // Time-filtered quotes
-  const recentQuotes = filterByDate(quotes);
-  const recentMachines = filterByDate(machines);
-  const recentInventory = filterByDate(inventory);
-  const recentStock = [...recentMachines, ...recentInventory];
+  const recentQuotes = useMemo(() => filterByDate(quotes), [filterByDate, quotes]);
+  const recentMachines = useMemo(() => filterByDate(machines), [filterByDate, machines]);
+  const recentInventory = useMemo(() => filterByDate(inventory), [filterByDate, inventory]);
+  const recentStock = useMemo(() => [...recentMachines, ...recentInventory], [recentMachines, recentInventory]);
   
   // Group quotes over time
   const quotesOverTime = useMemo(() => {
@@ -197,59 +250,6 @@ export default function StatisticsPanel({ onNavigate }) {
       .map(([name, count]) => ({ name, count }))
       .sort((a, b) => b.count - a.count);
   }, [recentStock]);
-
-  const KPICard = ({ title, subtitle, value, icon: Icon, color, onClick, noData }) => (
-    <div 
-      onClick={!noData ? onClick : undefined}
-      style={{
-        backgroundColor: 'var(--bg-surface)',
-        border: '1px solid var(--border-color)',
-        borderRadius: '12px',
-        padding: '1.5rem',
-        display: 'flex',
-        alignItems: 'flex-start',
-        justifyContent: 'space-between',
-        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)',
-        cursor: (!noData && onClick) ? 'pointer' : 'default',
-        transition: 'transform 0.2s, box-shadow 0.2s',
-        height: '100%',
-        minHeight: '130px'
-      }}
-      onMouseEnter={e => { if (!noData && onClick) { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 12px -2px rgba(0,0,0,0.1)' } }}
-      onMouseLeave={e => { if (!noData && onClick) { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.05)' } }}
-    >
-      <div style={{ flex: 1, paddingRight: '1rem', minWidth: 0 }}>
-        <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 0.25rem 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{title}</p>
-        {subtitle && <p style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', margin: '0 0 0.5rem 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{subtitle}</p>}
-        {noData ? (
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', margin: subtitle ? 0 : '0.5rem 0 0 0', fontStyle: 'italic' }}>Ingen data för vald period</p>
-        ) : (
-          <h3 style={{ color: 'var(--text-primary)', fontSize: '2rem', fontWeight: 700, margin: 0, fontFamily: 'Outfit, sans-serif' }}>{value}</h3>
-        )}
-      </div>
-      <div style={{ backgroundColor: `${color}15`, padding: '0.75rem', borderRadius: '12px', flexShrink: 0 }}>
-        <Icon color={color} size={24} />
-      </div>
-    </div>
-  );
-
-  const ChartCard = ({ title, children, minHeight = '350px' }) => (
-    <div style={{
-      backgroundColor: 'var(--bg-surface)',
-      border: '1px solid var(--border-color)',
-      borderRadius: '12px',
-      padding: '1.5rem',
-      display: 'flex',
-      flexDirection: 'column',
-      height: '100%',
-      minHeight
-    }}>
-      <h3 style={{ margin: '0 0 1.5rem 0', fontSize: '1.125rem', color: 'var(--text-primary)', fontWeight: 600 }}>{title}</h3>
-      <div style={{ flex: 1, minHeight: 0 }}>
-        {children}
-      </div>
-    </div>
-  );
 
   if (loading) {
     return (

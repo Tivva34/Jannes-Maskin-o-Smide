@@ -102,7 +102,7 @@ export async function subscribeToPush() {
   let permission;
   try {
     permission = await Notification.requestPermission();
-  } catch (e) {
+  } catch {
     return {
       success: false,
       error: 'Kunde inte begära notifikationstillstånd.',
@@ -123,7 +123,7 @@ export async function subscribeToPush() {
   let registration;
   try {
     registration = await navigator.serviceWorker.ready;
-  } catch (e) {
+  } catch {
     return {
       success: false,
       error: 'Service worker är inte tillgänglig.',

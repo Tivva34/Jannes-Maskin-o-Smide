@@ -1,12 +1,11 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Plus, X, Save, Loader2, AlertTriangle, Upload, Star, Trash2, ArrowUp, ArrowDown, Image as ImageIcon } from 'lucide-react';
+import { ArrowLeft, X, Save, Loader2, AlertTriangle, Upload, Star, Trash2, ArrowUp, ArrowDown, Image as ImageIcon } from 'lucide-react';
 import {
   getInventoryItemById,
   createInventoryItem,
   updateInventoryItem,
   INVENTORY_STATUS_OPTIONS,
-  INVENTORY_CATEGORIES,
   uploadInventoryImage,
   deleteInventoryImage,
   setPrimaryInventoryImage,
@@ -73,49 +72,52 @@ const InventoryFormPage = () => {
   // Images
   const [images, setImages] = useState([]);
   const [deletedImages, setDeletedImages] = useState([]);
-  const [uploading, setUploading] = useState(false);
+  const [uploading] = useState(false);
   const [createdId, setCreatedId] = useState(null);
-
-  // ── Load existing item for editing ────────────────────────────────────────
-  const loadData = useCallback(async () => {
-    if (!isEditing) return;
-    const { data, error: err } = await getInventoryItemById(id);
-    if (err || !data) {
-      setError('Lösöret hittades inte eller kunde inte hämtas.');
-      setLoadingData(false);
-      return;
-    }
-    setForm({
-      name: data.name ?? '',
-      name_en: data.name_en ?? '',
-      price: data.price != null ? String(data.price) : '',
-      category: data.category ?? 'other',
-      description: data.description ?? '',
-      description_en: data.description_en ?? '',
-      status: data.status ?? 'draft',
-    });
-    setOriginalStatus(data.status ?? 'draft');
-    setImages(data.inventory_images || []);
-    setDeletedImages([]);
-
-    setSlugPreview(data.slug ?? '');
-    const autoSlug = generateSlug(data.name ?? '');
-    const isManual = data.slug && data.slug !== autoSlug;
-    setSlugManual(Boolean(isManual));
-
-    setLoadingData(false);
-  }, [id, isEditing]);
-
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
+  const [prevName, setPrevName] = useState(form.name);
 
   // ── Auto-generate slug from name (only when NOT editing or manual) ───────────
+  if (form.name !== prevName) {
+    setPrevName(form.name);
+    if (!slugManual) {
+      setSlugPreview(form.name ? generateSlug(form.name) : '');
+    }
+  }
+
+  // ── Load existing item for editing ────────────────────────────────────────
   useEffect(() => {
-    if (slugManual) return;
-    if (!form.name) { setSlugPreview(''); return; }
-    setSlugPreview(generateSlug(form.name));
-  }, [form.name, slugManual]);
+    async function loadData() {
+      if (!isEditing) return;
+      const { data, error: err } = await getInventoryItemById(id);
+      if (err || !data) {
+        setError('Lösöret hittades inte eller kunde inte hämtas.');
+        setLoadingData(false);
+        return;
+      }
+      const loadedName = data.name ?? '';
+      setForm({
+        name: loadedName,
+        name_en: data.name_en ?? '',
+        price: data.price != null ? String(data.price) : '',
+        category: data.category ?? 'other',
+        description: data.description ?? '',
+        description_en: data.description_en ?? '',
+        status: data.status ?? 'draft',
+      });
+      setPrevName(loadedName);
+      setOriginalStatus(data.status ?? 'draft');
+      setImages(data.inventory_images || []);
+      setDeletedImages([]);
+
+      setSlugPreview(data.slug ?? '');
+      const autoSlug = generateSlug(loadedName);
+      const isManual = data.slug && data.slug !== autoSlug;
+      setSlugManual(Boolean(isManual));
+
+      setLoadingData(false);
+    }
+    loadData();
+  }, [id, isEditing]);
 
   // ── Cleanup Object URLs on unmount ───────────────────────────────────────────
   const imagesRef = useRef(images);

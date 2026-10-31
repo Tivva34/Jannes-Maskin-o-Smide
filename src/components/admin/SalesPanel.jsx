@@ -1,11 +1,56 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import { CheckCircle, DollarSign, Percent, X } from 'lucide-react';
 
 import { getActiveSales } from '../../lib/salesService';
 
+const KPICard = ({ title, subtitle, value, icon: Icon, color, noData }) => (
+  <div 
+    style={{
+      backgroundColor: 'var(--bg-surface)',
+      border: '1px solid var(--border-color)',
+      borderRadius: '12px',
+      padding: '1.5rem',
+      display: 'flex',
+      alignItems: 'flex-start',
+      justifyContent: 'space-between',
+      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)',
+      height: '100%',
+      minHeight: '130px'
+    }}
+  >
+    <div style={{ flex: 1, paddingRight: '1rem', minWidth: 0 }}>
+      <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 0.25rem 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{title}</p>
+      {subtitle && <p style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', margin: '0 0 0.5rem 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{subtitle}</p>}
+      {noData ? (
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', margin: subtitle ? 0 : '0.5rem 0 0 0', fontStyle: 'italic' }}>Ingen data för vald period</p>
+      ) : (
+        <h3 style={{ color: 'var(--text-primary)', fontSize: '2rem', fontWeight: 700, margin: 0, fontFamily: 'Outfit, sans-serif' }}>{value}</h3>
+      )}
+    </div>
+    <div style={{ backgroundColor: `${color}15`, padding: '0.75rem', borderRadius: '12px', flexShrink: 0 }}>
+      <Icon color={color} size={24} />
+    </div>
+  </div>
+);
+
+const ChartCard = ({ title, children }) => (
+  <div style={{
+    backgroundColor: 'var(--bg-surface)',
+    border: '1px solid var(--border-color)',
+    borderRadius: '12px',
+    padding: '1.5rem',
+    display: 'flex',
+    flexDirection: 'column',
+    height: '100%'
+  }}>
+    <h3 style={{ margin: '0 0 1.5rem 0', fontSize: '1.125rem', color: 'var(--text-primary)', fontWeight: 600 }}>{title}</h3>
+    <div style={{ flex: 1, minHeight: 0 }}>
+      {children}
+    </div>
+  </div>
+);
+
 export default function SalesPanel({ machines = [], inventory = [] }) {
-  const navigate = useNavigate();
   const [sales, setSales] = useState([]);
   const [loading, setLoading] = useState(true);
   const [timeFilter, setTimeFilter] = useState('30'); // '7', '30', '365', 'all'
@@ -78,7 +123,7 @@ export default function SalesPanel({ machines = [], inventory = [] }) {
     if (timeFilter === 'all') return items;
     
     if (timeFilter.startsWith('month-')) {
-      const [_, year, month] = timeFilter.split('-');
+      const [, year, month] = timeFilter.split('-');
       const startDate = new Date(parseInt(year), parseInt(month) - 1, 1);
       const endDate = new Date(parseInt(year), parseInt(month), 0, 23, 59, 59, 999);
       
@@ -102,53 +147,6 @@ export default function SalesPanel({ machines = [], inventory = [] }) {
   const avgSalePrice = salesWithPrice.length > 0 ? totalSalesValue / salesWithPrice.length : 0;
   
   const formatPrice = (p) => new Intl.NumberFormat('sv-SE', { style: 'currency', currency: 'SEK', maximumFractionDigits: 0 }).format(p);
-
-  const KPICard = ({ title, subtitle, value, icon: Icon, color, noData }) => (
-    <div 
-      style={{
-        backgroundColor: 'var(--bg-surface)',
-        border: '1px solid var(--border-color)',
-        borderRadius: '12px',
-        padding: '1.5rem',
-        display: 'flex',
-        alignItems: 'flex-start',
-        justifyContent: 'space-between',
-        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)',
-        height: '100%',
-        minHeight: '130px'
-      }}
-    >
-      <div style={{ flex: 1, paddingRight: '1rem', minWidth: 0 }}>
-        <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 0.25rem 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{title}</p>
-        {subtitle && <p style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', margin: '0 0 0.5rem 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{subtitle}</p>}
-        {noData ? (
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', margin: subtitle ? 0 : '0.5rem 0 0 0', fontStyle: 'italic' }}>Ingen data för vald period</p>
-        ) : (
-          <h3 style={{ color: 'var(--text-primary)', fontSize: '2rem', fontWeight: 700, margin: 0, fontFamily: 'Outfit, sans-serif' }}>{value}</h3>
-        )}
-      </div>
-      <div style={{ backgroundColor: `${color}15`, padding: '0.75rem', borderRadius: '12px', flexShrink: 0 }}>
-        <Icon color={color} size={24} />
-      </div>
-    </div>
-  );
-
-  const ChartCard = ({ title, children }) => (
-    <div style={{
-      backgroundColor: 'var(--bg-surface)',
-      border: '1px solid var(--border-color)',
-      borderRadius: '12px',
-      padding: '1.5rem',
-      display: 'flex',
-      flexDirection: 'column',
-      height: '100%'
-    }}>
-      <h3 style={{ margin: '0 0 1.5rem 0', fontSize: '1.125rem', color: 'var(--text-primary)', fontWeight: 600 }}>{title}</h3>
-      <div style={{ flex: 1, minHeight: 0 }}>
-        {children}
-      </div>
-    </div>
-  );
 
   if (loading) {
     return (

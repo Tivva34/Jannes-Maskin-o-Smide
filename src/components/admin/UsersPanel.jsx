@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { supabase } from '../../lib/supabase';
 import { getSupabaseUrl } from '../../lib/config';
-import { AlertTriangle, X, Check, Loader2, Plus, Pencil, Shield, Trash2, Mail, Info } from 'lucide-react';
+import { AlertTriangle, X, Check, Plus, Pencil, Shield, Trash2, Mail, Info } from 'lucide-react';
 
 const PERMISSIONS_LIST = [
   { id: 'machines:read', label: 'Visa Maskiner' },
@@ -64,7 +63,7 @@ export default function UsersPanel() {
 
   // Tooltip popover state
   const [showTooltip, setShowTooltip] = useState(false);
-  const tooltipRef = React.useRef(null);
+  const tooltipRef = useRef(null);
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -81,35 +80,31 @@ export default function UsersPanel() {
   const isSuperadmin = profile?.role === 'superadmin';
   const isAdmin = profile?.role === 'admin';
 
-  const handleApiRequest = async (action, payload) => {
-    try {
-      setError('');
-      setSuccess('');
-      const supabaseUrl = getSupabaseUrl(import.meta.env);
-      const res = await fetch(
-        `${supabaseUrl}/functions/v1/admin-users`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${session?.access_token}`
-          },
-          body: JSON.stringify({ action, payload })
-        }
-      );
-      
-      const data = await res.json();
-      
-      if (!res.ok) {
-        throw new Error(data.error || 'Något gick fel');
+  const handleApiRequest = useCallback(async (action, payload) => {
+    setError('');
+    setSuccess('');
+    const supabaseUrl = getSupabaseUrl(import.meta.env);
+    const res = await fetch(
+      `${supabaseUrl}/functions/v1/admin-users`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.access_token}`
+        },
+        body: JSON.stringify({ action, payload })
       }
-      return data;
-    } catch (err) {
-      throw err;
+    );
+    
+    const data = await res.json();
+    
+    if (!res.ok) {
+      throw new Error(data.error || 'Något gick fel');
     }
-  };
+    return data;
+  }, [session?.access_token]);
 
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     setLoading(true);
     try {
       const { users: fetchedUsers } = await handleApiRequest('getUsers');
@@ -118,11 +113,15 @@ export default function UsersPanel() {
       setError('Kunde inte hämta användare: ' + err.message);
     }
     setLoading(false);
-  };
+  }, [handleApiRequest]);
 
   useEffect(() => {
-    fetchUsers();
-  }, []);
+    let active = true;
+    Promise.resolve().then(() => {
+      if (active) fetchUsers();
+    });
+    return () => { active = false; };
+  }, [fetchUsers]);
 
   const handleSaveUser = async (e) => {
     e.preventDefault();
@@ -197,7 +196,9 @@ export default function UsersPanel() {
           setError(parsed.message);
           return;
         }
-      } catch(e) {}
+      } catch {
+        // Ignore JSON parse errors for plain text error responses
+      }
       
       setError(err.message);
     }
@@ -214,7 +215,9 @@ export default function UsersPanel() {
       try {
         const parsed = JSON.parse(err.message);
         if (parsed.message) msg = parsed.message;
-      } catch(e) {}
+      } catch {
+        // Ignore JSON parse errors for plain text error responses
+      }
       setError(`Kunde inte skicka ny inbjudan: ${msg}`);
     }
   };
