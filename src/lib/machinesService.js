@@ -274,7 +274,6 @@ export async function uploadMachineImage(machineId, file) {
     return { error: new Error(`Filen är för stor. Max ${MAX_IMAGE_SIZE_MB} MB.`) };
   }
 
-  const fileExt = file.name.split('.').pop();
   const safeName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, '');
   const timestamp = Date.now();
   const randomStr = Math.random().toString(36).substring(2, 8);

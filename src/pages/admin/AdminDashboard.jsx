@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { LogOut, Plus, Pencil, Trash2, AlertTriangle, X, RefreshCw, Search, Sun, Moon, Lock, User, Menu } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
@@ -123,7 +123,7 @@ const StatCard = ({ label, value, accent, isActive, onClick }) => (
 
 // ─── Main component ────────────────────────────────────────────────────────────
 const AdminDashboard = () => {
-  const { user, profile, session, signOut, updatePassword } = useAuth();
+  const { profile, session, signOut, updatePassword } = useAuth();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -230,12 +230,13 @@ const AdminDashboard = () => {
   const [toDelete, setToDelete]     = useState(null);   // item to confirm delete
   const [deleting, setDeleting]     = useState(false);
 
-  const loadRequestId = React.useRef(0);
+  const loadRequestId = useRef(0);
 
-  const load = useCallback(async (isSilent = false) => {
+  const load = useCallback(async (isSilent) => {
     const reqId = ++loadRequestId.current;
+    const silent = isSilent === true;
     
-    if (!isSilent) setLoading(true);
+    if (!silent) setLoading(true);
     if (reqId === loadRequestId.current) setError('');
     
     // Load machines
@@ -294,10 +295,16 @@ const AdminDashboard = () => {
       setUnreadRepliesCount(actionCount);
     }
     
-    if (!isSilent) setLoading(false);
+    if (!silent) setLoading(false);
   }, [session]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    let active = true;
+    Promise.resolve().then(() => {
+      if (active) load();
+    });
+    return () => { active = false; };
+  }, [load]);
 
   const handleQuotesUpdated = useCallback((newCount, actionCount) => {
     if (newCount !== undefined) setNewQuotesCount(newCount);

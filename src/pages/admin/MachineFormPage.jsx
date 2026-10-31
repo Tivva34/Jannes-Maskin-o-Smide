@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Plus, X, Save, Loader2, AlertTriangle, Upload, Star, Trash2, ArrowUp, ArrowDown, Image as ImageIcon } from 'lucide-react';
 import {
@@ -135,58 +135,61 @@ const MachineFormPage = () => {
   // Images
   const [images, setImages] = useState([]);
   const [deletedImages, setDeletedImages] = useState([]); // Track images to delete on save
-  const [uploading, setUploading] = useState(false);
+  const [uploading] = useState(false);
   const [createdId, setCreatedId] = useState(null);
-
-  // ── Load existing machine for editing ────────────────────────────────────────
-  const loadData = useCallback(async () => {
-    if (!isEditing) return;
-    const { data, error: err } = await getMachineById(id);
-    if (err || !data) {
-      setError('Maskinen hittades inte eller kunde inte hämtas.');
-      setLoadingData(false);
-      return;
-    }
-    const specsArray = data.specs ? Object.entries(data.specs).map(([key, value]) => ({ key, value })) : [];
-    const specsEnArray = data.specs_en ? Object.entries(data.specs_en).map(([key, value]) => ({ key, value })) : [];
-
-    setForm({
-      name: data.name ?? '',
-      name_en: data.name_en ?? '',
-      type: data.type ?? 'other',
-      category: data.category ?? 'other',
-      year: data.year ?? '',
-      price: data.price != null ? String(data.price) : '',
-      description: data.description ?? '',
-      description_en: data.description_en ?? '',
-      status: data.status ?? 'draft',
-      features: data.features ?? [],
-      features_en: data.features_en ?? [],
-      specs: specsArray,
-      specs_en: specsEnArray,
-    });
-    setOriginalStatus(data.status ?? 'draft');
-    setImages(data.machine_images || []);
-    setDeletedImages([]);
-    setSlugPreview(data.slug ?? '');
-    
-    const autoSlug = generateSlug(data.name ?? '');
-    const isManual = data.slug && data.slug !== autoSlug;
-    setSlugManual(Boolean(isManual));
-    
-    setLoadingData(false);
-  }, [id, isEditing]);
-
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
+  const [prevName, setPrevName] = useState(form.name);
 
   // ── Auto-generate slug from name (only when NOT editing or manual) ───────────
+  if (form.name !== prevName) {
+    setPrevName(form.name);
+    if (!slugManual) {
+      setSlugPreview(form.name ? generateSlug(form.name) : '');
+    }
+  }
+
+  // ── Load existing machine for editing ────────────────────────────────────────
   useEffect(() => {
-    if (slugManual) return;
-    if (!form.name) { setSlugPreview(''); return; }
-    setSlugPreview(generateSlug(form.name));
-  }, [form.name, slugManual]);
+    async function loadData() {
+      if (!isEditing) return;
+      const { data, error: err } = await getMachineById(id);
+      if (err || !data) {
+        setError('Maskinen hittades inte eller kunde inte hämtas.');
+        setLoadingData(false);
+        return;
+      }
+      const specsArray = data.specs ? Object.entries(data.specs).map(([key, value]) => ({ key, value })) : [];
+      const specsEnArray = data.specs_en ? Object.entries(data.specs_en).map(([key, value]) => ({ key, value })) : [];
+      const loadedName = data.name ?? '';
+
+      setForm({
+        name: loadedName,
+        name_en: data.name_en ?? '',
+        type: data.type ?? 'other',
+        category: data.category ?? 'other',
+        year: data.year ?? '',
+        price: data.price != null ? String(data.price) : '',
+        description: data.description ?? '',
+        description_en: data.description_en ?? '',
+        status: data.status ?? 'draft',
+        features: data.features ?? [],
+        features_en: data.features_en ?? [],
+        specs: specsArray,
+        specs_en: specsEnArray,
+      });
+      setPrevName(loadedName);
+      setOriginalStatus(data.status ?? 'draft');
+      setImages(data.machine_images || []);
+      setDeletedImages([]);
+      setSlugPreview(data.slug ?? '');
+      
+      const autoSlug = generateSlug(loadedName);
+      const isManual = data.slug && data.slug !== autoSlug;
+      setSlugManual(Boolean(isManual));
+      
+      setLoadingData(false);
+    }
+    loadData();
+  }, [id, isEditing]);
 
   // ── Cleanup Object URLs on unmount ───────────────────────────────────────────
   const imagesRef = useRef(images);
