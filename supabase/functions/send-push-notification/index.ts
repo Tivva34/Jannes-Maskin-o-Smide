@@ -2,8 +2,8 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
 // ---------------------------------------------------------------------------
-// Web Push / VAPID implementation using the Web Crypto API (Deno built-in).
-// We avoid external npm dependencies for maximum compatibility with Supabase.
+// Implementation av Web Push / VAPID med Web Crypto API (inbyggt i Deno).
+// Vi undviker externa npm-beroenden för maximal kompatibilitet med Supabase.
 // ---------------------------------------------------------------------------
 
 const corsHeaders = {
@@ -12,7 +12,7 @@ const corsHeaders = {
 };
 
 // ---------------------------------------------------------------------------
-// Notification preference mapping: request_type → preference column name
+// Mappning av notifikationspreferenser: request_type → kolumnnamn för preferens
 // ---------------------------------------------------------------------------
 const PREFERENCE_MAP: Record<string, string> = {
   machine_inquiry:   "machine_inquiries",
@@ -36,11 +36,11 @@ const PREFERENCE_MAP: Record<string, string> = {
 };
 
 // ---------------------------------------------------------------------------
-// VAPID / Web Push helpers
+// Hjälpfunktioner för VAPID / Web Push
 // ---------------------------------------------------------------------------
 
 function base64UrlDecode(str: string): Uint8Array<ArrayBuffer> {
-  // Normalize padding
+  // Normalisera utfyllnad (padding)
   const padded = str.replace(/-/g, "+").replace(/_/g, "/");
   const pad = padded.length % 4;
   const padded2 = pad ? padded + "=".repeat(4 - pad) : padded;
@@ -99,7 +99,7 @@ async function importVapidPublicKey(publicKeyB64: string): Promise<CryptoKey> {
   );
 }
 
-/** Build a VAPID JWT for the given audience (push service origin) */
+/** Bygg en VAPID-JWT för angiven mottagare (push-tjänstens origin) */
 async function buildVapidJwt(
   audience: string,
   vapidPublicKeyB64: string,
@@ -133,7 +133,7 @@ interface PushSubscription {
   auth: string;
 }
 
-/** Encrypt the push message payload using RFC 8291 (aes128gcm) */
+/** Kryptera push-meddelandets nyttolast enligt RFC 8291 (aes128gcm) */
 async function encryptPushPayload(
   subscription: PushSubscription,
   payloadStr: string
@@ -157,7 +157,7 @@ async function encryptPushPayload(
   const serverPublicKeyRaw = await crypto.subtle.exportKey("raw", serverKeyPair.publicKey);
   const clientPublicKeyRaw = await crypto.subtle.exportKey("raw", clientPublicKey);
 
-  // HKDF for auth
+  // HKDF för autentisering
   const prk = await crypto.subtle.importKey("raw", new Uint8Array(sharedSecret), "HKDF", false, ["deriveBits"]);
 
   const authInfoBuf = new TextEncoder().encode("WebPush: info\0");
@@ -172,7 +172,7 @@ async function encryptPushPayload(
     256
   );
 
-  // HKDF for content encryption key and nonce
+  // HKDF för innehållskrypteringsnyckel och engångsvärde (nonce)
   const ikmKey = await crypto.subtle.importKey("raw", new Uint8Array(ikm), "HKDF", false, ["deriveBits"]);
 
   const keyInfoBuf = new TextEncoder().encode("Content-Encoding: aes128gcm\0");
@@ -194,10 +194,10 @@ async function encryptPushPayload(
   );
 
   const payloadBytes = new TextEncoder().encode(payloadStr);
-  // Add padding delimiter byte (0x02 = padding followed by content)
+  // Lägg till avgränsningsbyte för utfyllnad (0x02 = utfyllnad följd av innehåll)
   const plaintext = new Uint8Array(payloadBytes.length + 1);
-  plaintext.set(payloadBytes, 0); // Data first
-  plaintext[payloadBytes.length] = 2; // record delimiter
+  plaintext.set(payloadBytes, 0); // Data först
+  plaintext[payloadBytes.length] = 2; // Postavgränsare
 
   const ciphertext = await crypto.subtle.encrypt(
     { name: "AES-GCM", iv: new Uint8Array(nonce), tagLength: 128 },
@@ -205,10 +205,10 @@ async function encryptPushPayload(
     plaintext
   );
 
-  // Build RFC 8291 encrypted body:
-  // salt (16) + rs (4 = 0x00001001 = 4097) + idlen (1) + server pub key (65) + ciphertext
+  // Bygg krypterad kropp enligt RFC 8291:
+  // salt (16) + rs (4 = 0x00001001 = 4097) + idlen (1) + publik servernyckel (65) + chiffertext
   const serverPublicKeyBytes = new Uint8Array(serverPublicKeyRaw);
-  const rs = new Uint8Array([0x00, 0x00, 0x10, 0x01]); // record size 4097
+  const rs = new Uint8Array([0x00, 0x00, 0x10, 0x01]); // poststorlek 4097
   const idLen = new Uint8Array([serverPublicKeyBytes.length]);
   const body = new Uint8Array(
     16 + 4 + 1 + serverPublicKeyBytes.length + ciphertext.byteLength
@@ -223,7 +223,7 @@ async function encryptPushPayload(
   return { body, salt, serverPublicKey: serverKeyPair.publicKey };
 }
 
-/** Send a single Web Push message using VAPID */
+/** Skicka ett enskilt Web Push-meddelande med VAPID */
 async function sendWebPush(
   subscription: PushSubscription,
   payloadJson: Record<string, unknown>,
@@ -280,7 +280,7 @@ async function sendWebPush(
 }
 
 // ---------------------------------------------------------------------------
-// Notification text builders
+// Byggare för notifikationstext
 // ---------------------------------------------------------------------------
 function buildNotificationPayload(
   event: string,
@@ -305,7 +305,7 @@ function buildNotificationPayload(
     };
   }
 
-  // new_quote_request – customize title by type
+  // new_quote_request – anpassa rubrik efter förfrågningstyp
   const titleMap: Record<string, string> = {
     machine_inquiry:   "Ny maskinförfrågan",
     buy_machine:       "Ny köpförfrågan",
@@ -333,18 +333,18 @@ function buildNotificationPayload(
 }
 
 // ---------------------------------------------------------------------------
-// Main handler
+// Huvudhanterare
 // ---------------------------------------------------------------------------
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
 
-  // ── 1. Verify trigger secret ──────────────────────────────────────────────
+  // ── 1. Verifiera trigger-hemlighet ────────────────────────────────────────
   const triggerSecret = Deno.env.get("PUSH_TRIGGER_SECRET") ?? Deno.env.get("push_trigger_secret");
   const requestSecret = req.headers.get("x-push-trigger-secret");
 
-  // Also allow user JWT for test-notification endpoint
+  // Tillåt även användar-JWT för slutpunkten för testnotifikationer
   const authHeader = req.headers.get("Authorization");
   const isUserJwt  = authHeader?.startsWith("Bearer ");
   const isTestRequest = req.url.includes("test=true");
@@ -367,7 +367,7 @@ serve(async (req) => {
     }
   }
 
-  // ── 2. Parse body ─────────────────────────────────────────────────────────
+  // ── 2. Tolka anropskropp ──────────────────────────────────────────────────
   let body: Record<string, unknown>;
   try {
     body = await req.json();
@@ -383,7 +383,7 @@ serve(async (req) => {
   const requestType      = (body.request_type as string) ?? "";
   const customerName     = (body.customer_name as string) ?? (body.sender_email as string) ?? "";
 
-  // ── 3. Load VAPID keys ────────────────────────────────────────────────────
+  // ── 3. Läs in VAPID-nycklar ───────────────────────────────────────────────
   const vapidPublicKeyB64  = Deno.env.get("VAPID_PUBLIC_KEY") ?? Deno.env.get("vapid_public_key") ?? "";
   const vapidPrivateKeyB64 = Deno.env.get("VAPID_PRIVATE_KEY") ?? Deno.env.get("vapid_private_key") ?? "";
   const vapidSubject       = Deno.env.get("VAPID_SUBJECT") ?? Deno.env.get("vapid_subject") ?? "mailto:info@jannesmaskin.example";
@@ -408,14 +408,14 @@ serve(async (req) => {
     });
   }
 
-  // ── 4. Init Supabase admin client ─────────────────────────────────────────
+  // ── 4. Initiera Supabase admin-klient ─────────────────────────────────────
   const supabaseUrl        = Deno.env.get("SUPABASE_URL") ?? "";
   const serviceRoleKey     = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
   const supabaseAdmin      = createClient(supabaseUrl, serviceRoleKey, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
 
-  // ── 5. TEST notification (only for authenticated users, current device) ───
+  // ── 5. TEST-notifikation (endast för inloggade användare, aktuell enhet) ──
   if (isTestRequest && isUserJwt) {
     const token = authHeader!.replace(/^Bearer\s+/i, "");
     const { data: { user }, error: userError } = await createClient(
@@ -431,7 +431,7 @@ serve(async (req) => {
       });
     }
 
-    // Get subscriptions for this user only
+    // Hämta prenumerationer endast för denna användare
     const { data: subs, error: dbError } = await supabaseAdmin
       .from("push_subscriptions")
       .select("endpoint, p256dh, auth")
@@ -478,7 +478,7 @@ serve(async (req) => {
       );
       if (result.ok) {
         sent++;
-        // Update last_used_at
+        // Uppdatera last_used_at
         await supabaseAdmin
           .from("push_subscriptions")
           .update({ last_used_at: new Date().toISOString() })
@@ -491,7 +491,7 @@ serve(async (req) => {
       }
     }
 
-    // Remove expired subscriptions
+    // Ta bort utgångna prenumerationer
     if (expiredEndpoints.length > 0) {
       await supabaseAdmin
         .from("push_subscriptions")
@@ -513,7 +513,7 @@ serve(async (req) => {
     });
   }
 
-  // ── 6. Determine preference column ───────────────────────────────────────
+  // ── 6. Avgör preferenskolumn ──────────────────────────────────────────────
   let preferenceColumn: string;
   if (event === "customer_reply") {
     preferenceColumn = "customer_replies";
@@ -528,7 +528,7 @@ serve(async (req) => {
     }
   }
 
-  // ── 7. Find users with this preference enabled ────────────────────────────
+  // ── 7. Hitta användare som har denna preferens aktiverad ──────────────────
   const { data: prefs, error: prefsError } = await supabaseAdmin
     .from("user_notification_preferences")
     .select(`user_id, ${preferenceColumn}`)
@@ -552,7 +552,7 @@ serve(async (req) => {
 
   const userIds = (prefs as unknown as Record<string, unknown>[]).map((p) => p.user_id as string);
 
-  // ── 8. Fetch push subscriptions for those users ───────────────────────────
+  // ── 8. Hämta push-prenumerationer för dessa användare ─────────────────────
   const { data: subscriptions, error: subsError } = await supabaseAdmin
     .from("push_subscriptions")
     .select("user_id, endpoint, p256dh, auth")
@@ -574,7 +574,7 @@ serve(async (req) => {
     });
   }
 
-  // ── 9. Build notification payload ─────────────────────────────────────────
+  // ── 9. Bygg nyttolast för notifikation ────────────────────────────────────
   const notificationPayload = buildNotificationPayload(
     event,
     requestType,
@@ -583,7 +583,7 @@ serve(async (req) => {
     basePath
   );
 
-  // ── 10. Send push to each subscription ────────────────────────────────────
+  // ── 10. Skicka push till varje prenumeration ──────────────────────────────
   let sent = 0;
   let failed = 0;
   const expiredEndpoints: string[] = [];
@@ -599,7 +599,7 @@ serve(async (req) => {
 
     if (result.ok) {
       sent++;
-      // Update last_used_at (non-fatal if it fails)
+      // Uppdatera last_used_at (ej kritiskt om det misslyckas)
       supabaseAdmin
         .from("push_subscriptions")
         .update({ last_used_at: new Date().toISOString() })
@@ -615,7 +615,7 @@ serve(async (req) => {
     }
   }
 
-  // ── 11. Remove permanently invalid subscriptions ──────────────────────────
+  // ── 11. Ta bort permanent ogiltiga prenumerationer ────────────────────────
   if (expiredEndpoints.length > 0) {
     const { error: deleteError } = await supabaseAdmin
       .from("push_subscriptions")
@@ -628,7 +628,7 @@ serve(async (req) => {
     }
   }
 
-  // ── 12. Mark queue item as processed ─────────────────────────────────────
+  // ── 12. Markera köpost som bearbetad ──────────────────────────────────────
   if (quoteRequestId && event) {
     const queueEventType = event === "customer_reply" ? "customer_reply" : "new_quote_request";
     await supabaseAdmin

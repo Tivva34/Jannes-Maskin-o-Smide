@@ -41,7 +41,7 @@ serve(async (req) => {
       throw new HttpError("Unauthorized", 401);
     }
 
-    // 1. Get calling user explicitly using token
+    // 1. Hämta anropande användare explicit med token
     const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token);
     if (userError || !user) {
       console.error("Auth verification failed:", userError?.message);
@@ -50,8 +50,8 @@ serve(async (req) => {
 
     // (Verifierad användares e-post och id loggas medvetet inte.)
 
-    // 2. Initialize Service Role Client for Admin Operations
-    // We do this AFTER verifying the JWT to safely bypass RLS for profile lookup
+    // 2. Initiera Service Role-klient för administratörsåtgärder
+    // Vi gör detta EFTER att ha verifierat JWT för att säkert kunna kringgå RLS vid profiluppslagning
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
@@ -77,7 +77,7 @@ serve(async (req) => {
       { auth: { autoRefreshToken: false, persistSession: false } }
     );
 
-    // 3. Get caller's profile securely using admin client
+    // 3. Hämta anroparens profil säkert via admin-klienten
     const { data: callerProfile, error: profileError } = await supabaseAdmin
       .from("user_profiles")
       .select("id, email, role, is_active")
@@ -112,13 +112,13 @@ serve(async (req) => {
       throw new HttpError("Forbidden: Requires admin privileges", 403);
     }
 
-    // 4. Extract Redirect URL from request Origin
+    // 4. Extrahera omdirigerings-URL från anropets Origin
     const origin = req.headers.get("origin") || req.headers.get("referer") || Deno.env.get("VITE_APP_URL");
     const redirectTo = origin ? `${origin.replace(/\/$/, "")}/admin` : undefined;
 
     const { action, payload } = await req.json();
 
-    // Helper to check if removing the target would leave 0 superadmins
+    // Hjälpfunktion för att kontrollera om borttagning av målet skulle lämna 0 superadmins
     const checkLastSuperadmin = async (targetId: string) => {
       const { count, error } = await supabaseAdmin
         .from("user_profiles")
@@ -133,9 +133,9 @@ serve(async (req) => {
       }
     };
 
-    // -- GET USERS --
+    // -- HÄMTA ANVÄNDARE --
     if (action === "getUsers") {
-      // Fetch user profiles and their notification preferences
+      // Hämta användarprofiler och deras notifikationsinställningar
       const { data: profiles, error: profileError } = await supabaseAdmin
         .from("user_profiles")
         .select("*, user_notification_preferences(*)")
@@ -144,13 +144,13 @@ serve(async (req) => {
       if (profileError) throw new HttpError(profileError.message, 500);
       let currentProfiles = profiles || [];
 
-      // Fetch auth users to determine pending status and missing profiles
+      // Hämta autentiseringsanvändare för att avgöra väntande status och saknade profiler
       const { data: authData, error: authError } = await supabaseAdmin.auth.admin.listUsers();
       if (authError) throw new HttpError(authError.message, 500);
 
       const authUsers = authData?.users || [];
 
-      // Auto-repair missing profiles
+      // Återskapa saknade profiler automatiskt
       const missingProfiles = authUsers.filter(u => !currentProfiles.find(p => p.id === u.id));
       for (const missingUser of missingProfiles) {
         const { data: newProfile, error: createError } = await supabaseAdmin.from("user_profiles")
@@ -173,13 +173,13 @@ serve(async (req) => {
         }
       }
 
-      // Re-sort profiles to keep them ordered by created_at descending if new ones were added
+      // Sortera om profiler efter created_at fallande om nya lades till
       currentProfiles.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
       const enrichedUsers = currentProfiles.map(profile => {
         const authUser = authUsers.find(u => u.id === profile.id);
         const lastSignIn = authUser?.last_sign_in_at;
-        // If they have never signed in and don't have a confirmed email, they are pending
+        // Om användaren aldrig har loggat in och inte har bekräftad e-post räknas kontot som väntande
         const is_pending = authUser ? (!lastSignIn && !authUser.email_confirmed_at) : false;
 
         return {
@@ -192,7 +192,7 @@ serve(async (req) => {
       return new Response(JSON.stringify({ success: true, users: enrichedUsers }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // -- INVITE --
+    // -- BJUD IN --
     if (action === "invite") {
       const { email, name, role, job_role, permissions, notification_preferences } = payload;
 
@@ -205,14 +205,14 @@ serve(async (req) => {
       if (typeof email !== "string" || !email.includes("@")) {
         throw new HttpError("Ogiltig e-postadress", 400);
       }
-      // 1. Check if user already exists in Auth
+      // 1. Kontrollera om användaren redan finns i Auth
       const { data: authData, error: authSearchError } = await supabaseAdmin.auth.admin.listUsers();
       if (authSearchError) throw new HttpError(authSearchError.message, 500);
 
       const existingUser = authData?.users.find(u => u.email === email);
 
       if (existingUser) {
-        // User exists in auth. Let's see if they are pending
+        // Användaren finns i Auth; kontrollera om inbjudan är väntande
         const is_pending = !existingUser.last_sign_in_at && !existingUser.email_confirmed_at;
 
         if (is_pending) {
@@ -229,7 +229,7 @@ serve(async (req) => {
         }
       }
 
-      // User does not exist, send invite
+      // Användaren finns inte, skicka inbjudan
       const { data: inviteData, error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
         data: { name, role },
         redirectTo
@@ -238,10 +238,10 @@ serve(async (req) => {
 
       const userId = inviteData.user.id;
 
-      // Backend protection: endast välformade behörigheter; interns får aldrig write/delete
+      // Backend-skydd: endast välformade behörigheter; praktikanter får aldrig write/delete
       const finalPermissions = sanitizePermissions(permissions, role);
 
-      // Upsert profile
+      // Skapa eller uppdatera profil
       const { error: upsertError } = await supabaseAdmin.from("user_profiles")
         .upsert({
           id: userId,
@@ -255,7 +255,7 @@ serve(async (req) => {
 
       if (upsertError) throw new HttpError(upsertError.message, 500);
 
-      // Upsert notification preferences if provided
+      // Spara notifikationsinställningar om de angivits
       if (notification_preferences) {
         const { error: prefError } = await supabaseAdmin.from("user_notification_preferences")
           .upsert({
@@ -268,7 +268,7 @@ serve(async (req) => {
       return new Response(JSON.stringify({ success: true, user: inviteData.user }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // -- RESEND INVITE --
+    // -- SKICKA OM INBJUDAN --
     if (action === "resendInvite") {
       const { email, role } = payload;
 
@@ -292,7 +292,7 @@ serve(async (req) => {
         }), 409);
       }
 
-      // Send the resend invite
+      // Skicka om inbjudan
       const { error: resendError } = await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
         redirectTo,
       });
@@ -302,7 +302,7 @@ serve(async (req) => {
       return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // -- UPDATE PROFILE (Name, Job Role, Notifications) --
+    // -- UPPDATERA PROFIL (namn, yrkesroll, notifikationer) --
     if (action === "updateProfile") {
       const { userId, name, job_role, notification_preferences } = payload;
 
@@ -324,7 +324,7 @@ serve(async (req) => {
         if (error) throw new HttpError(error.message, 500);
       }
 
-      // Update notification preferences
+      // Uppdatera notifikationsinställningar
       if (notification_preferences) {
         const { error: prefError } = await supabaseAdmin.from("user_notification_preferences")
           .upsert({
@@ -337,7 +337,7 @@ serve(async (req) => {
       return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // -- UPDATE ROLE --
+    // -- UPPDATERA ROLL --
     if (action === "updateRole") {
       const { userId, role } = payload;
 
@@ -345,8 +345,8 @@ serve(async (req) => {
         return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
 
-      // Allow admins to update job roles and preferences for their subordinates, 
-      // but only superadmin can change the system 'role'
+      // Tillåt administratörer att uppdatera yrkesroller och inställningar för underordnade,
+      // men endast superadmin får ändra systemets behörighetsroll ('role')
       if (callerRole !== "superadmin") {
         throw new HttpError("Only superadmins can change system roles", 403);
       }
@@ -372,7 +372,7 @@ serve(async (req) => {
       return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // -- UPDATE PERMISSIONS --
+    // -- UPPDATERA BEHÖRIGHETER --
     if (action === "updatePermissions") {
       const { userId, permissions } = payload;
 
@@ -383,7 +383,7 @@ serve(async (req) => {
         throw new HttpError("Admins can only update permissions for employees and interns", 403);
       }
 
-      // Backend protection: endast välformade behörigheter; interns får aldrig write/delete
+      // Backend-skydd: endast välformade behörigheter; praktikanter får aldrig write/delete
       const finalPermissions = sanitizePermissions(permissions, targetProfile.role);
 
       const { data, error } = await supabaseAdmin.from("user_profiles")
@@ -395,7 +395,7 @@ serve(async (req) => {
       return new Response(JSON.stringify({ success: true, profile: data }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // -- TOGGLE STATUS --
+    // -- VÄXLA STATUS --
     if (action === "toggleStatus") {
       const { userId, is_active } = payload;
 
@@ -423,7 +423,7 @@ serve(async (req) => {
       return new Response(JSON.stringify({ success: true, profile: data }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // -- DELETE USER --
+    // -- RADERA ANVÄNDARE --
     if (action === "deleteUser") {
       const { userId } = payload;
 
@@ -438,7 +438,7 @@ serve(async (req) => {
         throw new HttpError("En Superadmin kan inte raderas via detta gränssnitt.", 403);
       }
 
-      // Delete the user from auth.users (user_profiles will cascade if ON DELETE CASCADE is set, otherwise we delete it manually)
+      // Radera användaren från auth.users (user_profiles raderas automatiskt om ON DELETE CASCADE är satt)
       const { error: deleteAuthError } = await supabaseAdmin.auth.admin.deleteUser(userId);
       if (deleteAuthError) throw new HttpError(deleteAuthError.message, 500);
 
@@ -452,7 +452,7 @@ serve(async (req) => {
     const status = err instanceof HttpError ? err.status : 500;
 
     let errorMsg = err.message;
-    // Try to parse JSON errors (from 409)
+    // Försök tolka JSON-fel (från 409)
     try {
       const parsed = JSON.parse(err.message);
       return new Response(JSON.stringify(parsed), {
@@ -460,7 +460,7 @@ serve(async (req) => {
         status: status,
       });
     } catch (e) {
-      // not json, return normal error
+      // Inte JSON, returnera vanligt fel
       return new Response(JSON.stringify({ error: err.message }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: status,

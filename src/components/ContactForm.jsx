@@ -31,13 +31,13 @@ const ContactForm = ({ preselectedSubject = '' }) => {
     e.preventDefault();
     setErrorMsg('');
 
-    // Client-side validation
+    // Validering på klientsidan
     if (!formData.name || !formData.email || !formData.message) {
       setErrorMsg(t('quote.errorValidation') || 'Fyll i alla obligatoriska fält.');
       return;
     }
     
-    // Simple spam/double-click protection via sessionStorage
+    // Enkelt skydd mot spam och dubbelklick via sessionStorage
     const lastSubmit = sessionStorage.getItem('last_contact_submit');
     if (lastSubmit && Date.now() - parseInt(lastSubmit, 10) < 30000) {
       setErrorMsg(t('quote.errorSpam') || 'Du har redan skickat en förfrågan nyligen. Vänligen vänta en stund.');
@@ -46,7 +46,7 @@ const ContactForm = ({ preselectedSubject = '' }) => {
 
     setStatus('submitting');
     
-    // Format message to include subject if one was selected
+    // Formatera meddelandet så att valt ämne inkluderas
     let finalMessage = formData.message;
     if (formData.subject) {
       const subjectLabel = t(`form.opt_${formData.subject}`) || formData.subject;
@@ -55,7 +55,7 @@ const ContactForm = ({ preselectedSubject = '' }) => {
 
     const requestData = {
       name: formData.name,
-      company: '', // Optional/not in contact form
+      company: '', // Valfri uppgift som inte finns i kontaktformuläret
       email: formData.email,
       phone: formData.phone,
       message: finalMessage,
@@ -73,7 +73,7 @@ const ContactForm = ({ preselectedSubject = '' }) => {
     } else {
       sessionStorage.setItem('last_contact_submit', Date.now().toString());
       setStatus('success');
-      // Clear form except user info maybe? The user requested: "töm formuläret"
+      // Töm formuläret efter lyckat inskick
       setFormData({
         name: '',
         email: '',

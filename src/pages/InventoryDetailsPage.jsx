@@ -32,7 +32,7 @@ const InventoryDetailsPage = () => {
   const [showPhoneModal, setShowPhoneModal] = useState(false);
   const { t, lang } = useLang();
 
-  // Arrow keys & escape for lightbox
+  // Piltangenter och Escape för bildvisare (lightbox)
   const handleKeyDown = useCallback((e) => {
     if (!lightboxOpen) return;
     if (e.key === 'Escape') {
@@ -52,7 +52,7 @@ const InventoryDetailsPage = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
 
-  // Prevent background scroll when lightbox is open
+  // Förhindra bakgrundsrullning när bildvisaren är öppen
   useEffect(() => {
     document.body.style.overflow = lightboxOpen ? 'hidden' : '';
     return () => { document.body.style.overflow = ''; };
@@ -64,11 +64,11 @@ const InventoryDetailsPage = () => {
       setError('');
       const { data, error: err } = await getInventoryItemBySlugOrId(identifier);
       
-      // Ensure only published items are viewable on the public route
+      // Säkerställ att endast publicerade objekt kan visas på den publika rutten
       if (err || !data || data.status !== 'published') {
         setError(t('inventoryDetail.errorDefault') || 'Objektet kunde inte hittas.');
       } else {
-        // Redirect to slug URL if loaded via UUID (Backwards compatibility)
+        // Omdirigera till slug-URL om sidan laddades via UUID (bakåtkompatibilitet)
         const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(identifier);
         if (isUuid && data.slug) {
           navigate(`/losore/${data.slug}`, { replace: true });
@@ -146,12 +146,12 @@ const InventoryDetailsPage = () => {
       if (item?.inventory_images && item.inventory_images.length > 1) {
         const cur = item.inventory_images.findIndex(img => img.id === selectedImage?.id);
         if (distanceX > 0) {
-          // Swipe left -> next image
+          // Svep vänster -> nästa bild
           if (cur < item.inventory_images.length - 1) {
             setSelectedImage(item.inventory_images[cur + 1]);
           }
         } else {
-          // Swipe right -> prev image
+          // Svep höger -> föregående bild
           if (cur > 0) {
             setSelectedImage(item.inventory_images[cur - 1]);
           }
@@ -164,7 +164,7 @@ const InventoryDetailsPage = () => {
     <>
       <div style={{ backgroundColor: 'var(--bg-primary)', paddingBottom: '4rem' }}>
 
-      {/* Breadcrumbs */}
+      {/* Brödsmulor */}
       <div style={{ backgroundColor: 'var(--bg-surface)', borderBottom: '1px solid var(--border-color)', padding: '1rem 0' }}>
         <div className="container">
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', color: 'var(--text-muted)' }}>
@@ -184,7 +184,7 @@ const InventoryDetailsPage = () => {
 
         <div className="machine-details-grid">
 
-          {/* Left – Image Gallery */}
+          {/* Vänster – Bildgalleri */}
           <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
             <div style={{
               backgroundColor: 'var(--bg-surface)',
@@ -214,7 +214,7 @@ const InventoryDetailsPage = () => {
               />
             </div>
 
-            {/* Thumbnails */}
+            {/* Miniatyrbilder */}
             {item.inventory_images && item.inventory_images.length > 1 && (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 80px), 1fr))', gap: '0.75rem' }}>
                 {item.inventory_images.map(img => (
@@ -245,7 +245,7 @@ const InventoryDetailsPage = () => {
 
           </div>
 
-          {/* Right – Info */}
+          {/* Höger – Information */}
           <div className="fade-up delay-100" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
             <h1 style={{ fontSize: '2.5rem', color: 'var(--text-primary)', marginBottom: '0.5rem', lineHeight: 1.2 }}>
               {displayItemName}
@@ -293,7 +293,7 @@ const InventoryDetailsPage = () => {
           </div>
         </div>
 
-        {/* Similar inventory items (moved below the grid to appear last) */}
+        {/* Liknande lösöresobjekt (placerade under rutnätet för att visas sist) */}
         {similarItems.length > 0 && (
           <div className="similar-machines-section" style={{ marginTop: '4rem', paddingTop: '2rem', borderTop: '1px solid var(--border-color)' }}>
             <h3 style={{ fontSize: '1.5rem', marginBottom: '2rem', color: 'var(--text-primary)' }}>
@@ -349,7 +349,7 @@ const InventoryDetailsPage = () => {
         )}
 
       </div>
-      </div> {/* End main content div */}
+      </div> {/* Slut på huvudinnehåll */}
 
 
       <style>{`
@@ -363,7 +363,7 @@ const InventoryDetailsPage = () => {
         }
       `}</style>
 
-      {/* Lightbox */}
+      {/* Bildvisare (lightbox) */}
       {lightboxOpen && (
         <div
           style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.9)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', touchAction: 'none' }}
@@ -415,7 +415,7 @@ const InventoryDetailsPage = () => {
         </div>
       )}
       
-      {/* Phone Modal */}
+      {/* Telefonmodal */}
       {showPhoneModal && (
         <div 
           style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}
@@ -435,7 +435,7 @@ const InventoryDetailsPage = () => {
         </div>
       )}
 
-      {/* Quote Modal */}
+      {/* Offertmodal */}
       <QuoteModal 
         isOpen={quoteModalOpen} 
         onClose={() => setQuoteModalOpen(false)} 

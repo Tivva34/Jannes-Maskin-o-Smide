@@ -180,7 +180,7 @@ const UpdatePasswordPage = () => {
   );
 };
 
-/* ── Styles (reused from LoginPage for consistency) ── */
+/* ── Stilar (återanvända från LoginPage för enhetlighet) ── */
 const styles = {
   page: {
     minHeight: '100vh',

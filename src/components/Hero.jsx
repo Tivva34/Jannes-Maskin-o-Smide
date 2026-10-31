@@ -7,9 +7,9 @@ const Hero = ({ onOpenContact }) => {
 
   return (
     <section id="home" className="hero-section">
-      {/* Background Image */}
+      {/* Bakgrundsbild */}
       <div className="hero-bg" style={{ backgroundImage: `url("${import.meta.env.BASE_URL}images/hero_bg_logo.jpg")` }} />
-      {/* Overlay to improve text readability */}
+      {/* Övertoning för bättre läsbarhet */}
       <div className="hero-overlay" />
 
       <div className="container" style={{ position: 'relative', zIndex: 1, paddingTop: '2rem' }}>
@@ -38,7 +38,7 @@ const Hero = ({ onOpenContact }) => {
             )}
           </div>
 
-          {/* Tag row */}
+          {/* Taggrad */}
           <div className="hero-tags fade-up delay-300">
             <span>{t('hero.tag1')}</span>
             <span style={{ color: 'var(--accent-primary)' }}>•</span>
@@ -57,7 +57,7 @@ const Hero = ({ onOpenContact }) => {
           min-height: calc(100vh - 110px);
           display: flex;
           align-items: center;
-          margin-top: 110px; /* Start exactly below the desktop header */
+          margin-top: 110px; /* Börja direkt under desktop-headern */
           overflow: hidden;
         }
 
@@ -102,7 +102,7 @@ const Hero = ({ onOpenContact }) => {
             margin-bottom: 2rem !important;
           }
           .hero-section {
-            margin-top: 100px; /* Start exactly below the mobile/tablet header */
+            margin-top: 100px; /* Börja direkt under mobil-/surfplatteheadern */
             padding-bottom: 3rem;
             display: flex;
             flex-direction: column;
@@ -154,7 +154,7 @@ const Hero = ({ onOpenContact }) => {
           }
         }
 
-        /* ── Hero Text Colors ── */
+        /* ── Textfärger för hero ── */
         .hero-title {
           color: #ffffff;
         }
@@ -176,7 +176,7 @@ const Hero = ({ onOpenContact }) => {
           background-color: rgba(255,255,255,0.1);
         }
 
-        /* Prevent tagline wrapping on all standard mobiles */
+        /* Förhindra att taggraden bryts på vanliga mobilskärmar */
         @media (max-width: 480px) {
           .hero-tags {
             flex-wrap: nowrap;
@@ -193,7 +193,7 @@ const Hero = ({ onOpenContact }) => {
           }
         }
         
-        /* Mobile Color Adaptations */
+        /* Färganpassningar för mobil */
         @media (max-width: 1024px) {
           .hero-title {
             color: var(--text-primary);

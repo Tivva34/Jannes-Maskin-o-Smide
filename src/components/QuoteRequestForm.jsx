@@ -19,13 +19,13 @@ const QuoteRequestForm = ({ preselectedType = 'other', machine = null, inventory
   const [errorMsg, setErrorMsg] = useState('');
   const [prevType, setPrevType] = useState(preselectedType);
 
-  // Always keep request_type in sync with preselectedType if it changes
+  // Håll alltid request_type synkad med preselectedType om den ändras
   if (preselectedType !== prevType) {
     setPrevType(preselectedType);
     setFormData(prev => ({ ...prev, request_type: preselectedType }));
   }
 
-  // Determine dynamic heading and CTA based on context
+  // Bestäm dynamisk rubrik och knapptext utifrån kontext
   let heading = t('quote.headingDefault');
   let cta = t('quote.ctaDefault');
   
@@ -52,20 +52,20 @@ const QuoteRequestForm = ({ preselectedType = 'other', machine = null, inventory
     e.preventDefault();
     setErrorMsg('');
 
-    // Client-side validation
+    // Validering på klientsidan
     if (!formData.name || !formData.email || !formData.request_type || !formData.message) {
       setErrorMsg(t('quote.errorValidation'));
       return;
     }
     
-    // Basic email validation
+    // Grundläggande e-postvalidering
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
       setErrorMsg(t('quote.errorValidation'));
       return;
     }
 
-    // Simple spam/double-click protection via sessionStorage
+    // Enkelt skydd mot spam och dubbelklick via sessionStorage
     const lastSubmit = sessionStorage.getItem('last_quote_submit');
     if (lastSubmit && Date.now() - parseInt(lastSubmit, 10) < 30000) {
       setErrorMsg(t('quote.errorSpam'));
@@ -137,7 +137,7 @@ const QuoteRequestForm = ({ preselectedType = 'other', machine = null, inventory
     }}>
       <h3 style={{ marginBottom: '1.5rem', color: 'var(--text-primary)', fontSize: '1.5rem' }}>{heading}</h3>
       
-      {/* Phone number banner */}
+      {/* Telefonnummer-banner */}
       <div style={{
         display: 'flex',
         alignItems: 'center',

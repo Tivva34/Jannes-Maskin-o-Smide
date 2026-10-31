@@ -16,7 +16,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import translations from '../../i18n/translations';
 
-// ─── Status Badge ─────────────────────────────────────────────────────────────
+// ─── Statusbricka ─────────────────────────────────────────────────────────────
 const LeadStatusBadge = ({ status }) => {
   const label = getQuoteStatusLabel(status);
   const color = getQuoteStatusColor(status);
@@ -35,7 +35,7 @@ const LeadStatusBadge = ({ status }) => {
   );
 };
 
-// ─── Attachment Preview Component ─────────────────────────────────────────────
+// ─── Förhandsgranskning av bilaga ─────────────────────────────────────────────
 const AttachmentPreview = ({ att, isCustomer }) => {
   const [url, setUrl] = useState(null);
 
@@ -81,28 +81,28 @@ const AttachmentPreview = ({ att, isCustomer }) => {
   );
 };
 
-// ─── Main Panel Component ─────────────────────────────────────────────────────
+// ─── Huvudkomponent för panelen ───────────────────────────────────────────────
 const QuoteRequestsPanel = ({ onQuotesUpdated }) => {
   const { profile } = useAuth();
   const isAdminOrSuper = profile?.role === 'superadmin' || profile?.role === 'admin';
   const isEmployee = profile?.role === 'employee';
 
-  // Mirrors the has_permission() PostgreSQL function exactly.
-  // employee implicitly has: machines:read/write, inventory:read/write, quotes:read/write
-  // employee does NOT have: quotes:delete, machines:delete, inventory:delete, any users:*, statistics:read
-  // admin has: everything except users:delete, roles:superadmin
-  // superadmin: everything
-  // intern: read-only via explicit permissions array only
+  // Speglar PostgreSQL-funktionen has_permission() exakt.
+  // employee har implicit: machines:read/write, inventory:read/write, quotes:read/write
+  // employee har INTE: quotes:delete, machines:delete, inventory:delete, users:*, statistics:read
+  // admin har: allt utom users:delete och roles:superadmin
+  // superadmin: allt
+  // intern: endast läsbehörighet via explicit permissions-lista
   const hasPerm = (perm) => {
     if (isAdminOrSuper) return true;
     if (isEmployee) {
-      // Employee is explicitly denied delete and admin-level permissions
+      // Medarbetare (employee) nekas explicit radering och adminbehörigheter
       if (perm.endsWith(':delete') || perm.startsWith('users:') || perm.startsWith('roles:') || perm === 'statistics:read') return false;
-      // Employee has implicit read+write access to operational tables
+      // Medarbetare (employee) har implicit läs- och skrivbehörighet till operativa tabeller
       if (perm.startsWith('machines:') || perm.startsWith('inventory:') || perm.startsWith('quotes:')) return true;
       return false;
     }
-    // intern and others: check explicit permissions array only
+    // Praktikanter (intern) och övriga: kontrollera endast den explicita permissions-listan
     return (profile?.permissions || []).includes(perm);
   };
   const canWriteQuotes = hasPerm('quotes:write');
@@ -129,7 +129,7 @@ const QuoteRequestsPanel = ({ onQuotesUpdated }) => {
     } else {
       setRequests(data ?? []);
 
-        // Auto-update selectedRequest if it's currently open
+      // Uppdatera selectedRequest automatiskt om den för närvarande är öppen
       setSelectedRequest(prev => {
         if (!prev) return null;
         const updatedReq = data?.find(r => r.id === prev.id);
@@ -140,7 +140,7 @@ const QuoteRequestsPanel = ({ onQuotesUpdated }) => {
   }, []);
 
   useEffect(() => {
-  // Lyssnar på det globala notis-eventet
+    // Lyssnar på det globala notis-eventet
     const handleNewMessage = () => loadRequests(true);
     window.addEventListener('admin_quote_message_inserted', handleNewMessage);
     
@@ -154,7 +154,7 @@ const QuoteRequestsPanel = ({ onQuotesUpdated }) => {
   const [isSendingReply, setIsSendingReply] = useState(false);
   const [replyError, setReplyError] = useState('');
   const [replySuccess, setReplySuccess] = useState(false);
-  const [replyEmailStatus, setReplyEmailStatus] = useState(''); // message from backend about email
+  const [replyEmailStatus, setReplyEmailStatus] = useState(''); // meddelande från backend om e-poststatus
 
   const [openDropdown, setOpenDropdown] = useState(null);
   const filterMenuRef = useRef(null);
@@ -171,7 +171,7 @@ const QuoteRequestsPanel = ({ onQuotesUpdated }) => {
     };
   }, []);
 
-  // Keep selectedRequest synced with URL parameter ?quote=ID
+  // Håll selectedRequest synkad med URL-parametern ?quote=ID
   if (quoteIdParam && requests.length > 0) {
     const req = requests.find(r => r.id === quoteIdParam);
     if (req && (!selectedRequest || selectedRequest.id !== req.id)) {
@@ -189,7 +189,7 @@ const QuoteRequestsPanel = ({ onQuotesUpdated }) => {
     setSearchParams(prev => { prev.delete('quote'); return prev; }, { replace: true });
   };
 
-  // Clear reply state when changing selected request
+  // Nollställ svarsformuläret när valt ärende ändras
   const [prevSelectedId, setPrevSelectedId] = useState(selectedRequest?.id);
   if (selectedRequest?.id !== prevSelectedId) {
     setPrevSelectedId(selectedRequest?.id);
@@ -344,7 +344,7 @@ const QuoteRequestsPanel = ({ onQuotesUpdated }) => {
     } catch (err) {
       setReplyError(err.message);
 
-      // Cleanup orphaned files om Edge Function misslyckades
+      // Rensa överblivna filer om Edge Function misslyckades
       if (uploadedPaths.length > 0) {
         const pathsToRemove = uploadedPaths.map(p => p.path);
         await supabase.storage.from('quote-attachments').remove(pathsToRemove);
@@ -355,7 +355,7 @@ const QuoteRequestsPanel = ({ onQuotesUpdated }) => {
   };
 
   const filteredRequests = requests.filter(req => {
-    // Status filter
+    // Statusfilter
     let statusMatch;
     if (filter === 'all') {
       statusMatch = true;
@@ -372,7 +372,7 @@ const QuoteRequestsPanel = ({ onQuotesUpdated }) => {
       statusMatch = req.status === filter;
     }
 
-    // Type filter
+    // Typfilter
     let typeMatch = true;
     if (typeFilter !== 'all') {
       const workshopTypes = ['workshop', 'metalwork', 'custom', 'repair', 'boat_trailer', 'special_trailer'];
@@ -406,7 +406,7 @@ const QuoteRequestsPanel = ({ onQuotesUpdated }) => {
 
   return (
     <div>
-      {/* ─── Filters & Refresh ─── */}
+      {/* ─── Filter & uppdatering ─── */}
       <style>{`
         .quotes-filters-desktop { display: none; }
         .quotes-filters-mobile {
@@ -459,7 +459,7 @@ const QuoteRequestsPanel = ({ onQuotesUpdated }) => {
           color: var(--bg-primary);
         }
 
-        /* Mobile layout for Quotes (<480px) */
+        /* Mobillayout för förfrågningar (<480px) */
         @media (max-width: 479px) {
           .quote-list-item-row {
             flex-direction: column !important;
@@ -516,7 +516,7 @@ const QuoteRequestsPanel = ({ onQuotesUpdated }) => {
         }
       `}</style>
 
-      {/* Mobile Filters */}
+      {/* Mobilfilter */}
       <div className="quotes-filters-mobile" ref={filterMenuRef}>
         <button
           className={`filter-dropdown-btn ${openDropdown === 'status' ? 'active' : ''}`}
@@ -584,7 +584,7 @@ const QuoteRequestsPanel = ({ onQuotesUpdated }) => {
         )}
       </div>
 
-      {/* Desktop Filters */}
+      {/* Desktopfilter */}
       <div className="quotes-filters-desktop" style={{ flexDirection: 'column', gap: '1rem', marginBottom: '1.5rem' }}>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
@@ -646,7 +646,7 @@ const QuoteRequestsPanel = ({ onQuotesUpdated }) => {
         </div>
       )}
 
-      {/* ─── List / Table ─── */}
+      {/* ─── Lista / Tabell ─── */}
       {loading ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           {[...Array(5)].map((_, i) => (
@@ -700,7 +700,7 @@ const QuoteRequestsPanel = ({ onQuotesUpdated }) => {
                         messages: r.messages.map(m => m.sender_type === 'customer' ? { ...m, is_read: true } : m)
                       } : r));
 
-                      // This will automatically sync via the useEffect monitoring `requests`
+                      // Synkas automatiskt via den useEffect som övervakar `requests`
                     });
                   }
                 }}
@@ -719,7 +719,7 @@ const QuoteRequestsPanel = ({ onQuotesUpdated }) => {
                 onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.05)'; }}
                 onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'; }}
               >
-                {/* ─── Quote List Item Top / Middle / Bottom ─── */}
+                {/* ─── Rad i förfrågningslistan: överdel / mitt / underdel ─── */}
                 <div className="quote-list-item-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
 
                   {/* Rad 2 (Mobil) / Vänster (Desktop): Datum & Namn */}
@@ -784,7 +784,7 @@ const QuoteRequestsPanel = ({ onQuotesUpdated }) => {
         </div>
       )}
 
-      {/* ─── Detail Modal ─── */}
+      {/* ─── Detaljmodal ─── */}
       {selectedRequest && (
         <div
           style={{
@@ -801,7 +801,7 @@ const QuoteRequestsPanel = ({ onQuotesUpdated }) => {
             }}
             onClick={e => e.stopPropagation()}
           >
-            {/* Modal Header */}
+            {/* Modalhuvud */}
             <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'var(--bg-surface)' }}>
               <div>
                 <h2 style={{ margin: '0 0 0.25rem 0', fontSize: '1.25rem', color: 'var(--text-primary)' }}>Förfrågan: {getTypeLabel(selectedRequest.request_type)}</h2>
@@ -814,10 +814,10 @@ const QuoteRequestsPanel = ({ onQuotesUpdated }) => {
               </button>
             </div>
 
-            {/* Modal Body */}
+            {/* Modalinnehåll */}
             <div style={{ padding: '1.5rem', overflowY: 'auto' }}>
 
-              {/* Product link if exists */}
+              {/* Produktlänk om sådan finns */}
               {(selectedRequest.machine || selectedRequest.inventory_item) && (
                 <div style={{ marginBottom: '1.5rem', padding: '1rem', backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border-color)', borderRadius: '8px' }}>
                   <div style={{ fontSize: '0.8125rem', color: 'var(--text-muted)', marginBottom: '0.25rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Gäller specifikt objekt</div>
@@ -847,7 +847,7 @@ const QuoteRequestsPanel = ({ onQuotesUpdated }) => {
                 </div>
               )}
 
-              {/* Customer Info */}
+              {/* Kunduppgifter */}
               <div style={{ marginBottom: '2rem' }}>
                 <div style={{ fontSize: '0.8125rem', color: 'var(--text-muted)', marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Kunduppgifter</div>
                 <div className="quote-modal-customer-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
@@ -1071,7 +1071,7 @@ const QuoteRequestsPanel = ({ onQuotesUpdated }) => {
                 )}
               </div>
 
-              {/* Status Update & Delete */}
+              {/* Statusuppdatering och radering */}
               <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem' }}>
                 {canWriteQuotes && !['completed', 'archived'].includes(selectedRequest.status) && (
                   <>
@@ -1100,7 +1100,7 @@ const QuoteRequestsPanel = ({ onQuotesUpdated }) => {
                   </>
                 )}
 
-                {/* Delete Confirmation Block */}
+                {/* Bekräftelseruta för radering */}
                 {canDeleteQuotes && (
                   <div style={{ padding: '1rem', backgroundColor: 'rgba(239, 68, 68, 0.05)', border: '1px solid rgba(239, 68, 68, 0.2)', borderRadius: '8px', marginTop: '2rem' }}>
                     {!confirmDelete ? (

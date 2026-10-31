@@ -4,13 +4,13 @@ import { useAuth } from '../contexts/AuthContext';
 /**
  * ProtectedRoute
  *
- * Wraps admin routes. While the session is being verified (loading = true)
- * a full-screen loading indicator is shown to avoid a flash of the login page.
- * Once loading is complete:
- *   - No user → redirect to /admin/login
- *   - User present → render children
+ * Omsluter adminrutter. Medan sessionen verifieras (loading = true)
+ * visas en helskärmsladdningsindikator för att undvika att inloggningssidan blinkar förbi.
+ * När laddningen är klar:
+ *   - Ingen användare → omdirigera till /admin/login
+ *   - Inloggad användare → rendera children
  *
- * NOTE: This is a UX guard only. Real security lives in Supabase RLS.
+ * OBS: Detta är endast en UX-spärr. Den faktiska säkerheten ligger i Supabase RLS.
  */
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();

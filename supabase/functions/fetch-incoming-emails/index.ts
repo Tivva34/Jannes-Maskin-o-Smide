@@ -15,11 +15,11 @@ const ALLOW_SENDER_FALLBACK = Deno.env.get("INBOUND_SENDER_FALLBACK") === "true"
 // Brevlåda/etikett att polla. Låt demon använda en egen Gmail-etikett för att inte röra originalets inkorg.
 const IMAP_MAILBOX = Deno.env.get("IMAP_MAILBOX") || "INBOX";
 
-// Helper for multipart traversal
+// Hjälpfunktion för att gå igenom multipart-struktur
 function extractParts(node: any, result: { textPart: string | null, textCharset: string | null, htmlPart: string | null, htmlCharset: string | null, attachments: any[] } = { textPart: null, textCharset: null, htmlPart: null, htmlCharset: null, attachments: [] }) {
     if (!node) return result;
 
-    // Ignore multipart containers, recurse children
+    // Ignorera multipart-behållare och gå rekursivt igenom barnnoder
     if (node.type && node.type.toLowerCase().startsWith('multipart/')) {
         if (node.childNodes && Array.isArray(node.childNodes)) {
             for (const child of node.childNodes) extractParts(child, result);
@@ -27,7 +27,7 @@ function extractParts(node: any, result: { textPart: string | null, textCharset:
         return result;
     }
 
-    // Check if attachment
+    // Kontrollera om noden är en bilaga
     const isAttachment =
         (node.disposition && node.disposition.toLowerCase() === 'attachment') ||
         (node.dispositionParameters && node.dispositionParameters.filename) ||
@@ -95,7 +95,7 @@ serve(async (req) => {
       }
     }
   } catch (e) {
-    // ignore
+    // ignorera
   }
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
@@ -365,7 +365,7 @@ serve(async (req) => {
                 }
 
                 if (!bodyText && bodyHtml) {
-                    bodyText = bodyHtml.replace(/<[^>]+>/g, ' ').trim(); // Simple HTML to text
+                    bodyText = bodyHtml.replace(/<[^>]+>/g, ' ').trim(); // Enkel omvandling från HTML till text
                 }
 
                 // Ladda ner bilagor

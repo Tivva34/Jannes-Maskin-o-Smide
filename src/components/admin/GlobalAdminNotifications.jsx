@@ -49,7 +49,7 @@ const GlobalAdminNotifications = () => {
             setInAppToast('Nytt kundsvar inkommet!');
             playNotificationSound();
             
-            // Dispatch a global event so QuoteRequestsPanel can reload data
+            // Skicka en global händelse så att QuoteRequestsPanel kan ladda om data
             window.dispatchEvent(new CustomEvent('admin_quote_message_inserted'));
 
             if (toastTimerRef.current) clearTimeout(toastTimerRef.current);

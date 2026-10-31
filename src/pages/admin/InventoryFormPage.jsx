@@ -15,7 +15,7 @@ import {
 } from '../../lib/inventoryService';
 import { createSaleRecord, revertSaleRecord } from '../../lib/salesService';
 
-// ─── Reusable form field wrapper ───────────────────────────────────────────────
+// ─── Återanvändbar omslutning för formulärfält ─────────────────────────────────
 const Field = ({ label, hint, required, children }) => (
   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
     <label style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-primary)' }}>
@@ -43,15 +43,15 @@ const inputStyle = {
 const focusInput = e => { e.target.style.borderColor = 'var(--accent-primary)'; };
 const blurInput = e => { e.target.style.borderColor = 'var(--border-color)'; };
 
-// ─── Empty form state ──────────────────────────────────────────────────────────
+// ─── Tomt formulärtillstånd ────────────────────────────────────────────────────
 const EMPTY_FORM = {
   name: '', name_en: '', price: '', category: 'other',
   description: '', description_en: '', status: 'draft'
 };
 
-// ─── Main component ────────────────────────────────────────────────────────────
+// ─── Huvudkomponent ────────────────────────────────────────────────────────────
 const InventoryFormPage = () => {
-  const { id } = useParams();   // undefined = new item
+  const { id } = useParams();   // undefined = nytt objekt
   const navigate = useNavigate();
   const isEditing = Boolean(id);
 
@@ -63,20 +63,20 @@ const InventoryFormPage = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  // Sales tracking
+  // Försäljningsuppföljning
   const [originalStatus, setOriginalStatus] = useState('draft');
   const [showSoldModal, setShowSoldModal] = useState(false);
   const [tempSoldPrice, setTempSoldPrice] = useState('');
   const [confirmedSoldPrice, setConfirmedSoldPrice] = useState(null);
 
-  // Images
+  // Bilder
   const [images, setImages] = useState([]);
   const [deletedImages, setDeletedImages] = useState([]);
   const [uploading] = useState(false);
   const [createdId, setCreatedId] = useState(null);
   const [prevName, setPrevName] = useState(form.name);
 
-  // ── Auto-generate slug from name (only when NOT editing or manual) ───────────
+  // ── Generera slug automatiskt från namnet (endast om ej manuellt ändrad) ────
   if (form.name !== prevName) {
     setPrevName(form.name);
     if (!slugManual) {
@@ -84,7 +84,7 @@ const InventoryFormPage = () => {
     }
   }
 
-  // ── Load existing item for editing ────────────────────────────────────────
+  // ── Hämta befintligt objekt för redigering ──────────────────────────────────
   useEffect(() => {
     async function loadData() {
       if (!isEditing) return;
@@ -119,7 +119,7 @@ const InventoryFormPage = () => {
     loadData();
   }, [id, isEditing]);
 
-  // ── Cleanup Object URLs on unmount ───────────────────────────────────────────
+  // ── Städa upp Object-URL:er vid avmontering ─────────────────────────────────
   const imagesRef = useRef(images);
   useEffect(() => {
     imagesRef.current = images;
@@ -135,14 +135,14 @@ const InventoryFormPage = () => {
     };
   }, []);
 
-  // ── Form helpers ─────────────────────────────────────────────────────────────
+  // ── Formulärhjälpare ────────────────────────────────────────────────────────
   const set = (key, value) => {
     setForm(prev => ({ ...prev, [key]: value }));
     setError('');
     setSuccess('');
   };
 
-  // ── Submit ────────────────────────────────────────────────────────────────────
+  // ── Spara formulär ──────────────────────────────────────────────────────────
   const handleSubmit = async e => {
     e.preventDefault();
     setError('');
@@ -166,13 +166,13 @@ const InventoryFormPage = () => {
         setCreatedId(data.id);
       }
 
-      // 1. Delete removed DB images
+      // 1. Ta bort raderade databasbilder
       for (const img of deletedImages) {
         const { error: err } = await deleteInventoryImage(img.id, img.storage_path);
         if (err) console.error("Failed to delete image:", err);
       }
 
-      // 2. Upload new local images
+      // 2. Ladda upp nya lokala bilder
       let uploadedIdsMap = {};
       for (const img of images) {
         if (img.is_local) {
@@ -182,7 +182,7 @@ const InventoryFormPage = () => {
         }
       }
 
-      // 3. Update Sort Order & Primary status
+      // 3. Uppdatera sorteringsordning och primärbild
       const updates = images.map((img, idx) => ({
         id: img.is_local ? uploadedIdsMap[img.id] : img.id,
         sort_order: idx
@@ -200,7 +200,7 @@ const InventoryFormPage = () => {
         if (errPrim) throw new Error('Kunde inte spara huvudbild: ' + errPrim.message);
       }
 
-      // Handle sales record
+      // Hantera försäljningspost
       if (form.status === 'sold' && originalStatus !== 'sold') {
         const { error: saleErr } = await createSaleRecord({
           item_id: currentId,
@@ -219,7 +219,7 @@ const InventoryFormPage = () => {
 
       setSaving(false);
       
-      // Navigate directly to the list view on success
+      // Navigera direkt till listvyn när sparningen lyckats
       navigate('/admin?tab=inventory');
       return;
     } catch (err) {
@@ -229,7 +229,7 @@ const InventoryFormPage = () => {
     }
   };
 
-  // ── Image Handlers ────────────────────────────────────────────────────────────
+  // ── Bildhanterare ───────────────────────────────────────────────────────────
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files);
     if (!files.length) return;
@@ -314,7 +314,7 @@ const InventoryFormPage = () => {
     setImages(newImages);
   };
 
-  // ── Loading state ─────────────────────────────────────────────────────────────
+  // ── Laddningstillstånd ──────────────────────────────────────────────────────
   if (loadingData) {
     return (
       <div style={{ minHeight: '100vh', backgroundColor: 'var(--bg-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', color: 'var(--text-muted)' }}>
@@ -325,10 +325,10 @@ const InventoryFormPage = () => {
     );
   }
 
-  // ── Render ────────────────────────────────────────────────────────────────────
+  // ── Rendering ───────────────────────────────────────────────────────────────
   return (
     <div style={{ minHeight: '100vh', backgroundColor: 'var(--bg-primary)' }}>
-      {/* Top bar */}
+      {/* Toppfält */}
       <header style={{ backgroundColor: 'var(--bg-surface)', borderBottom: '1px solid var(--border-color)' }}>
         <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '64px' }}>
           <Link to="/admin?tab=inventory" style={{ fontFamily: 'Outfit,sans-serif', fontWeight: 800, fontSize: '1.1rem', textDecoration: 'none' }}>
@@ -341,13 +341,13 @@ const InventoryFormPage = () => {
         </div>
       </header>
 
-      {/* Form */}
+      {/* Formulär */}
       <main style={{ maxWidth: '800px', margin: '0 auto', padding: '2rem 1.5rem' }}>
         <h1 style={{ fontSize: '1.5rem', fontFamily: 'Outfit,sans-serif', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 2rem', letterSpacing: '-0.02em' }}>
           {isEditing ? 'Redigera lösöre' : 'Lägg till lösöre'}
         </h1>
 
-        {/* Alerts */}
+        {/* Meddelanderutor */}
         {error && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', backgroundColor: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: '8px', padding: '0.875rem 1rem', marginBottom: '1.5rem', color: '#f87171', fontSize: '0.9375rem' }}>
             <AlertTriangle size={16} style={{ flexShrink: 0 }} />
@@ -437,7 +437,7 @@ const InventoryFormPage = () => {
             </div>
           </section>
 
-          {/* ── Section: Images ── */}
+          {/* ── Sektion: Bilder ── */}
           <section style={sectionStyle}>
               <h2 style={{ ...sectionHeading, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <ImageIcon size={20} color="var(--accent-primary)" /> Bilder
@@ -446,7 +446,7 @@ const InventoryFormPage = () => {
                 Lösörets bilder visas offentligt i galleriet. Den primära bilden används som huvudbild.
               </p>
 
-              {/* Upload Button */}
+              {/* Uppladdningsknapp */}
               <div style={{ marginBottom: '1.5rem' }}>
                 <label style={{
                   display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
@@ -475,7 +475,7 @@ const InventoryFormPage = () => {
                 </div>
               </div>
 
-              {/* Image Grid */}
+              {/* Bildrutnät */}
               {images.length > 0 ? (
                 <div style={{
                   display: 'grid',
@@ -507,7 +507,7 @@ const InventoryFormPage = () => {
                       </div>
                       <div style={{ padding: '0.75rem', display: 'flex', justifyContent: 'space-between', backgroundColor: 'var(--bg-surface)' }}>
 
-                        {/* Left actions: sorting */}
+                        {/* Vänster åtgärder: sortering */}
                         <div style={{ display: 'flex', gap: '0.25rem' }}>
                           <button type="button" onClick={() => handleMoveImage(idx, 'up')} disabled={idx === 0}
                             style={imgActionBtn(idx === 0)} aria-label="Flytta upp">
@@ -519,7 +519,7 @@ const InventoryFormPage = () => {
                           </button>
                         </div>
 
-                        {/* Right actions: star and trash */}
+                        {/* Höger åtgärder: huvudbild och radera */}
                         <div style={{ display: 'flex', gap: '0.25rem' }}>
                           <button type="button" onClick={() => handleSetPrimary(img.id)}
                             style={{ ...imgActionBtn(img.is_primary), color: img.is_primary ? 'var(--accent-primary)' : 'var(--text-secondary)' }}
@@ -542,7 +542,7 @@ const InventoryFormPage = () => {
               )}
           </section>
 
-          {/* ── Section: Status ── */}
+          {/* ── Sektion: Status ── */}
           <section style={sectionStyle}>
             <h2 style={sectionHeading}>Status & Publicering</h2>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
@@ -585,7 +585,7 @@ const InventoryFormPage = () => {
             </div>
           </section>
 
-          {/* ── Actions ── */}
+          {/* ── Åtgärder ── */}
           <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', paddingTop: '1rem' }}>
             <button
               type="submit"
@@ -606,7 +606,7 @@ const InventoryFormPage = () => {
         @keyframes spin { to { transform: rotate(360deg); } }
       `}</style>
       
-      {/* Sold Modal */}
+      {/* Modal för såldmarkering */}
       {showSoldModal && (
         <div style={{
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
@@ -670,7 +670,7 @@ const InventoryFormPage = () => {
   );
 };
 
-// Shared section styles
+// Gemensamma sektionsstilar
 const sectionStyle = {
   backgroundColor: 'var(--bg-surface)',
   border: '1px solid var(--border-color)',

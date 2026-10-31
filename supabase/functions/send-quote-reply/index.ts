@@ -20,7 +20,7 @@ interface QuoteRequestRow {
 }
 
 serve(async (req) => {
-  // Handle CORS preflight
+  // Hantera CORS-förförfrågan (preflight)
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
@@ -28,11 +28,11 @@ serve(async (req) => {
   try {
     const authHeader = req.headers.get("Authorization");
 
-    // ── 1. Create user-context client (respects RLS throughout) ──────────────
-    // We use the user's JWT for ALL operations. No service-role needed because:
-    // - user_profiles: RLS allows "SELECT WHERE auth.uid() = id" (own profile)
-    // - quote_requests: RBAC RLS allows SELECT/UPDATE for quotes:write roles
-    // - quote_messages: RBAC RLS allows INSERT for quotes:write roles
+    // ── 1. Skapa klient med användarkontext (respekterar RLS genomgående) ────
+    // Vi använder användarens JWT för ALLA operationer. Ingen service-role behövs eftersom:
+    // - user_profiles: RLS tillåter "SELECT WHERE auth.uid() = id" (egen profil)
+    // - quote_requests: RBAC RLS tillåter SELECT/UPDATE för roller med quotes:write
+    // - quote_messages: RBAC RLS tillåter INSERT för roller med quotes:write
     const userClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_ANON_KEY") ?? "",
@@ -43,10 +43,10 @@ serve(async (req) => {
       }
     );
 
-    // ── 2. Verify JWT and get user identity ───────────────────────────────────
+    // ── 2. Verifiera JWT och hämta användaridentitet ─────────────────────────
     const token = authHeader?.replace(/^Bearer\s+/i, "");
 
-    // Explicitly pass the token to getUser() to ensure it's verified correctly
+    // Skicka med token explicit till getUser() för att säkerställa korrekt verifiering
     const { data: { user }, error: userError } = await userClient.auth.getUser(token);
 
     if (userError || !user) {
@@ -57,7 +57,7 @@ serve(async (req) => {
       });
     }
 
-    // ── 3. Fetch own profile for RBAC check (RLS: users can read own profile) ─
+    // ── 3. Hämta egen profil för RBAC-kontroll (RLS: användare får läsa egen profil) ─
     const { data: profile, error: profileError } = await userClient
       .from("user_profiles")
       .select("role, permissions, is_active")
@@ -79,10 +79,10 @@ serve(async (req) => {
       });
     }
 
-    // ── 4. RBAC: Require quotes:write permission ──────────────────────────────
-    // Explicitly allowed: superadmin, admin, employee (all have implicit quotes:*)
-    // Explicitly denied: intern and any role not listed above
-    // This mirrors the has_permission() function in the database exactly.
+    // ── 4. RBAC: Kräv behörigheten quotes:write ──────────────────────────────
+    // Explicit tillåtna: superadmin, admin, employee (alla har implicita quotes:*)
+    // Explicit nekade: intern och övriga roller som inte anges ovan
+    // Detta speglar funktionen has_permission() i databasen exakt.
     const { role, permissions } = profile;
     const hasQuotesWrite =
       role === "superadmin" ||
@@ -97,9 +97,9 @@ serve(async (req) => {
       );
     }
 
-    // ── 5. Parse and validate request body ───────────────────────────────────
+    // ── 5. Tolka och validera anropskroppen ──────────────────────────────────
     const body = await req.json().catch(() => null);
-    // Allow empty message if there are attachments
+    // Tillåt tomt meddelande om det finns bilagor
     const hasMessage = body && body.message && body.message.trim();
     const hasAttachments = body && Array.isArray(body.attachments) && body.attachments.length > 0;
     if (!body || !body.quote_request_id || (!hasMessage && !hasAttachments)) {
@@ -119,11 +119,10 @@ serve(async (req) => {
       });
     }
 
-    // ── 6. Fetch the quote request via userClient ─────────────────────────────
-    // RLS "RBAC Read quote requests" policy enforces that only roles with
-    // quotes:read can SELECT. Since employee has quotes:*, this passes.
-    // If the RLS policy denies access, this returns an error, acting as a
-    // second layer of protection beyond step 4.
+    // ── 6. Hämta offertförfrågan via userClient ──────────────────────────────
+    // RLS-policyn "RBAC Read quote requests" säkerställer att endast roller med
+    // quotes:read kan göra SELECT. Eftersom employee har quotes:* passerar detta.
+    // Om RLS-policyn nekar åtkomst returneras ett fel som ett andra skyddslager utöver steg 4.
     const { data: quote, error: quoteError } = await userClient
       .from("quote_requests")
       .select("id, email, status, name, machine:machines(name), inventory_item:inventory_items(name), request_type")
@@ -138,8 +137,8 @@ serve(async (req) => {
       });
     }
 
-    // ── 7. Save message to quote_messages (always runs, DB is source of truth) ─
-    // RLS "RBAC Insert quote messages" requires quotes:write – passes for employee.
+    // ── 7. Spara meddelandet i quote_messages (körs alltid, DB är sanningskälla) ─
+    // RLS-policyn "RBAC Insert quote messages" kräver quotes:write – passerar för employee.
     const senderEmail = user.email ?? "no-reply@jannesmaskin.example";
     const { data: savedMessage, error: insertError } = await userClient
       .from("quote_messages")
@@ -161,9 +160,9 @@ serve(async (req) => {
       );
     }
 
-    // ── 8. Update quote status → 'contacted' if currently 'new' ──────────────
-    // Only runs after message is successfully saved.
-    // RLS "RBAC Update quote requests" requires quotes:write – passes for employee.
+    // ── 8. Uppdatera offertstatus → 'contacted' om den för närvarande är 'new' ─
+    // Körs endast efter att meddelandet har sparats.
+    // RLS-policyn "RBAC Update quote requests" kräver quotes:write – passerar för employee.
     if (quote.status === "new") {
       const { error: updateError } = await userClient
         .from("quote_requests")
@@ -171,13 +170,13 @@ serve(async (req) => {
         .eq("id", quote_request_id);
 
       if (updateError) {
-        // Non-fatal: message is saved, status just didn't flip. Logged for ops.
+        // Ej kritiskt: meddelandet är sparat, endast statusuppdateringen uteblev. Loggas för felsökning.
         console.error("Failed to update status to contacted:", updateError);
       }
     }
 
-    // ── 9. Best-effort email via Google SMTP (optional, non-blocking) ────────
-    // DB operations above are always the source of truth.
+    // ── 9. E-postutskick via Google SMTP (valfritt, icke-blockerande) ────────
+    // Databasoperationerna ovan är alltid sanningskällan.
     let emailStatus = "not_configured";
     const smtpUser = Deno.env.get("GMAIL_SMTP_USER");
     const smtpPassword = Deno.env.get("GMAIL_SMTP_PASSWORD");
@@ -203,7 +202,7 @@ serve(async (req) => {
           },
         });
 
-        // Download attachments for Nodemailer
+        // Ladda ner bilagor för Nodemailer
         const mailAttachments = [];
         if (Array.isArray(attachments) && attachments.length > 0) {
           for (const att of attachments) {
@@ -217,7 +216,7 @@ serve(async (req) => {
               continue;
             }
 
-            // Convert Blob to Uint8Array for Nodemailer
+            // Konvertera Blob till Uint8Array för Nodemailer
             const arrayBuffer = await fileData.arrayBuffer();
             mailAttachments.push({
               filename: att.name,
@@ -240,7 +239,7 @@ serve(async (req) => {
           attachments: mailAttachments,
         });
 
-        // --- DIAGNOSTIC START ---
+        // --- DIAGNOSTIK START ---
         if (!info.messageId) {
           console.error("SMTP succeeded but Nodemailer returned no Message-ID.");
         } else {
@@ -269,7 +268,7 @@ serve(async (req) => {
             console.log("SMTP Message-ID successfully saved to quote_messages.");
           }
         }
-        // --- DIAGNOSTIC END ---
+        // --- DIAGNOSTIK SLUT ---
 
         emailStatus = testMode ? "sent_test_mode" : "sent";
         console.log(`Email sent. Status: ${emailStatus}`);
@@ -282,12 +281,12 @@ serve(async (req) => {
       console.log("Email not configured (no GMAIL_SMTP_USER/PASSWORD). Message saved to DB only.");
     }
 
-    // ── 10. Return success ────────────────────────────────────────────────────
+    // ── 10. Returnera lyckat svar ────────────────────────────────────────────
     const emailMessage =
       emailStatus === "sent" ? "Svaret sparades och skickades till kunden." :
         emailStatus === "sent_test_mode" ? "Svaret sparades. Testläge: e-post skickades till testadress." :
           emailStatus === "failed" ? "Svaret sparades i systemet, men e-post kunde inte skickas." :
-      /* not_configured */               "Svaret sparades i systemet. E-post är inte konfigurerat.";
+      /* ej konfigurerat */               "Svaret sparades i systemet. E-post är inte konfigurerat.";
 
     return new Response(
       JSON.stringify({

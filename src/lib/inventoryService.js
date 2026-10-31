@@ -1,12 +1,12 @@
 import { supabase } from './supabase';
 
 // ─────────────────────────────────────────────────────────────
-// Inventory CRUD
+// CRUD för lösöre
 // ─────────────────────────────────────────────────────────────
 
 /**
- * Get all inventory items for admin (all statuses).
- * Returns ordered by created_at descending.
+ * Hämta alla lösöresobjekt för admin (alla statusar).
+ * Returneras sorterade efter created_at fallande.
  */
 export async function getInventoryItems() {
   const { data, error } = await supabase
@@ -26,8 +26,8 @@ export async function getInventoryItems() {
 }
 
 /**
- * Get all published inventory items for the public frontend.
- * Ordered by created_at descending.
+ * Hämta alla publicerade lösöresobjekt för den publika sajten.
+ * Sorterade efter created_at fallande.
  */
 export async function getPublicInventoryItems() {
   const { data, error } = await supabase
@@ -48,7 +48,7 @@ export async function getPublicInventoryItems() {
 }
 
 /**
- * Get a single inventory item by ID (for the edit form or public details if needed).
+ * Hämta ett enskilt lösöresobjekt via ID (för redigeringsformuläret eller publika detaljer vid behov).
  */
 export async function getInventoryItemById(id) {
   const { data, error } = await supabase
@@ -65,10 +65,10 @@ export async function getInventoryItemById(id) {
 }
 
 /**
- * Get a single public inventory item by slug OR id for backward compatibility.
+ * Hämta ett enskilt publikt lösöresobjekt via slug ELLER id för bakåtkompatibilitet.
  */
 export async function getInventoryItemBySlugOrId(identifier) {
-  // If identifier is a valid UUID, try fetching by ID first
+  // Om identifieraren är ett giltigt UUID, försök hämta via ID först
   const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(identifier);
   
   let data, error;
@@ -82,7 +82,7 @@ export async function getInventoryItemBySlugOrId(identifier) {
       .single());
   }
   
-  // If not a UUID or if UUID lookup failed (maybe it's a slug that looks like a UUID? unlikely, but possible), try slug
+  // Om det inte är ett UUID eller om UUID-uppslaget misslyckades, försök med slug
   if (!data && !error) {
     ({ data, error } = await supabase
       .from('inventory_items')
@@ -100,7 +100,7 @@ export async function getInventoryItemBySlugOrId(identifier) {
 }
 
 /**
- * Get similar published inventory items by category.
+ * Hämta liknande publicerade lösöresobjekt efter kategori.
  */
 export async function getSimilarInventoryItems(excludeId, category, limit = 3) {
   const { data, error } = await supabase
@@ -123,7 +123,7 @@ export async function getSimilarInventoryItems(excludeId, category, limit = 3) {
 }
 
 /**
- * Convert a name to a URL-friendly slug.
+ * Omvandla ett namn till en URL-vänlig slug.
  */
 export function generateSlug(name) {
   if (!name) return '';
@@ -135,8 +135,8 @@ export function generateSlug(name) {
 }
 
 /**
- * Ensure a slug is unique in the database.
- * Pass excludeId to ignore the current item's own slug (for edits).
+ * Säkerställ att en slug är unik i databasen.
+ * Skicka med excludeId för att ignorera det aktuella objektets egen slug (vid redigering).
  */
 export async function ensureUniqueSlug(baseSlug, excludeId = null) {
   let slug = baseSlug;
@@ -164,14 +164,14 @@ export async function ensureUniqueSlug(baseSlug, excludeId = null) {
 }
 
 /**
- * Create a new inventory item.
+ * Skapa ett nytt lösöresobjekt.
  */
 export async function createInventoryItem(fields) {
   const { data, error } = await supabase
     .from('inventory_items')
     .insert([{
       name:        fields.name.trim(),
-      slug:        fields.slug, // Make sure to pass slug
+      slug:        fields.slug, // Se till att skicka med slug
       category:    fields.category || 'other',
       name_en:     fields.name_en?.trim() || null,
       description: fields.description?.trim() || null,
@@ -186,7 +186,7 @@ export async function createInventoryItem(fields) {
 }
 
 /**
- * Update an existing inventory item.
+ * Uppdatera ett befintligt lösöresobjekt.
  */
 export async function updateInventoryItem(id, fields) {
   const { data, error } = await supabase
@@ -209,9 +209,9 @@ export async function updateInventoryItem(id, fields) {
 }
 
 /**
- * Delete an inventory item by ID.
- * inventory_images rows are cascaded by the database (ON DELETE CASCADE).
- * Storage files must be cleaned up separately.
+ * Radera ett lösöresobjekt via ID.
+ * Rader i inventory_images tas bort automatiskt av databasen (ON DELETE CASCADE).
+ * Filer i lagringen måste rensas separat.
  */
 export async function deleteInventoryItem(id) {
   const { error } = await supabase
@@ -223,7 +223,7 @@ export async function deleteInventoryItem(id) {
 }
 
 // ─────────────────────────────────────────────────────────────
-// Status & Category helpers
+// Hjälpfunktioner för status och kategori
 // ─────────────────────────────────────────────────────────────
 
 export const INVENTORY_CATEGORIES = [
@@ -251,7 +251,7 @@ export function getInventoryStatusColor(status) {
 }
 
 // ─────────────────────────────────────────────────────────────
-// Image Management
+// Bildhantering
 // ─────────────────────────────────────────────────────────────
 
 const MAX_IMAGE_SIZE_MB = 10;
@@ -270,7 +270,7 @@ export async function uploadInventoryImage(itemId, file) {
   const randomStr = Math.random().toString(36).substring(2, 8);
   const storagePath = `${itemId}/${timestamp}_${randomStr}_${safeName}`;
 
-  // Upload to Storage
+  // Ladda upp till lagringen (Storage)
   const { error: storageError } = await supabase.storage
     .from('inventory-images')
     .upload(storagePath, file, { cacheControl: '3600', upsert: false });
@@ -285,7 +285,7 @@ export async function uploadInventoryImage(itemId, file) {
 
   const imageUrl = publicUrlData.publicUrl;
 
-  // Find current images to determine sort_order and is_primary
+  // Hämta befintliga bilder för att avgöra sort_order och is_primary
   const { data: currentImages } = await supabase
     .from('inventory_images')
     .select('sort_order, is_primary')
@@ -294,7 +294,7 @@ export async function uploadInventoryImage(itemId, file) {
   const isFirstImage = !currentImages || currentImages.length === 0;
   const nextSortOrder = isFirstImage ? 0 : Math.max(...currentImages.map(i => i.sort_order || 0)) + 1;
 
-  // Insert to DB
+  // Infoga i databasen
   const { data: insertedImage, error: dbError } = await supabase
     .from('inventory_images')
     .insert([{
@@ -308,7 +308,7 @@ export async function uploadInventoryImage(itemId, file) {
     .select()
     .single();
 
-  // Rollback storage file if DB insert fails
+  // Rulla tillbaka filen i lagringen om databasinfogningen misslyckas
   if (dbError) {
     await supabase.storage.from('inventory-images').remove([storagePath]);
     return { error: new Error('Databas-fel vid sparning av bild: ' + dbError.message) };
@@ -318,7 +318,7 @@ export async function uploadInventoryImage(itemId, file) {
 }
 
 export async function deleteInventoryImage(imageId, storagePath) {
-  // 1. Delete from DB first
+  // 1. Radera från databasen först
   const { error: dbError } = await supabase
     .from('inventory_images')
     .delete()
@@ -328,7 +328,7 @@ export async function deleteInventoryImage(imageId, storagePath) {
     return { error: dbError };
   }
 
-  // 2. Delete from Storage
+  // 2. Radera från lagringen (Storage)
   const { error: storageError } = await supabase.storage
     .from('inventory-images')
     .remove([storagePath]);
@@ -341,7 +341,7 @@ export async function deleteInventoryImage(imageId, storagePath) {
 }
 
 export async function setPrimaryInventoryImage(itemId, imageId) {
-  // First, unset all other primary images for this item
+  // Nollställ först alla andra primärbilder för detta objekt
   const { error: unsetError } = await supabase
     .from('inventory_images')
     .update({ is_primary: false })
@@ -349,7 +349,7 @@ export async function setPrimaryInventoryImage(itemId, imageId) {
 
   if (unsetError) return { error: unsetError };
 
-  // Then, set the target image as primary
+  // Sätt sedan målbilden som primärbild
   const { data, error } = await supabase
     .from('inventory_images')
     .update({ is_primary: true })

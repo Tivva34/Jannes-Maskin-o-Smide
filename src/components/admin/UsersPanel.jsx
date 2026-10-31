@@ -35,15 +35,15 @@ export default function UsersPanel() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  // Modal states
+  // Modaltillstånd
   const [showModal, setShowModal] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   
-  // Delete confirm states
+  // Tillstånd för raderingsbekräftelse
   const [deletingUser, setDeletingUser] = useState(null);
   const [deleteEmailConfirm, setDeleteEmailConfirm] = useState('');
 
-  // Resend Invite states
+  // Tillstånd för att skicka om inbjudan
   const [pendingResendUser, setPendingResendUser] = useState(null);
 
   const [formEmail, setFormEmail] = useState('');
@@ -61,7 +61,7 @@ export default function UsersPanel() {
     system_notifications: true
   });
 
-  // Tooltip popover state
+  // Tillstånd för inforuta (tooltip)
   const [showTooltip, setShowTooltip] = useState(false);
   const tooltipRef = useRef(null);
 
@@ -185,7 +185,7 @@ export default function UsersPanel() {
         fetchUsers();
       }
     } catch (err) {
-      // Check if it's the specific "already_invited" error
+      // Kontrollera om det är det specifika felet "already_invited"
       try {
         const parsed = JSON.parse(err.message);
         if (parsed.already_invited) {
@@ -197,7 +197,7 @@ export default function UsersPanel() {
           return;
         }
       } catch {
-        // Ignore JSON parse errors for plain text error responses
+        // Ignorera JSON-tolkningsfel för vanliga textfelmeddelanden
       }
       
       setError(err.message);
@@ -216,7 +216,7 @@ export default function UsersPanel() {
         const parsed = JSON.parse(err.message);
         if (parsed.message) msg = parsed.message;
       } catch {
-        // Ignore JSON parse errors for plain text error responses
+        // Ignorera JSON-tolkningsfel för vanliga textfelmeddelanden
       }
       setError(`Kunde inte skicka ny inbjudan: ${msg}`);
     }
@@ -535,7 +535,7 @@ export default function UsersPanel() {
             </table>
           </div>
 
-          {/* Mobile card list */}
+          {/* Kortlista för mobilvy */}
           <div className="admin-card-list">
             {users.map(u => {
               const canEdit = isSuperadmin || (isAdmin && (u.role === 'intern' || u.role === 'employee'));

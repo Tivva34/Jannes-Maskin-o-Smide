@@ -1,12 +1,12 @@
 import { supabase } from './supabase';
 
 // ─────────────────────────────────────────────────────────────
-// Slug helpers
+// Hjälpfunktioner för slug
 // ─────────────────────────────────────────────────────────────
 
 /**
- * Convert a machine name to a URL-friendly slug.
- * Handles Swedish characters: å→a, ä→a, ö→o
+ * Omvandla ett maskinnamn till en URL-vänlig slug.
+ * Hanterar svenska tecken: å→a, ä→a, ö→o
  */
 export function generateSlug(name) {
   return name
@@ -23,9 +23,9 @@ export function generateSlug(name) {
 }
 
 /**
- * Ensure a slug is unique in the database.
- * If 'massey-ferguson-390t' exists, returns 'massey-ferguson-390t-2', etc.
- * Pass excludeId to ignore the current machine's own slug (for edits).
+ * Säkerställ att en slug är unik i databasen.
+ * Om 'massey-ferguson-390t' redan finns returneras 'massey-ferguson-390t-2' osv.
+ * Skicka med excludeId för att ignorera den aktuella maskinens egen slug (vid redigering).
  */
 export async function ensureUniqueSlug(baseSlug, excludeId = null) {
   let slug = baseSlug;
@@ -44,23 +44,23 @@ export async function ensureUniqueSlug(baseSlug, excludeId = null) {
     const { data, error } = await query.single();
 
     if (error || !data) {
-      // No collision – slug is available
+      // Ingen krock – slug är ledig
       return slug;
     }
 
-    // Collision – try next suffix
+    // Krock – prova nästa suffix
     slug = `${baseSlug}-${counter}`;
     counter++;
   }
 }
 
 // ─────────────────────────────────────────────────────────────
-// Machines CRUD
+// CRUD för maskiner
 // ─────────────────────────────────────────────────────────────
 
 /**
- * Get all machines for admin (all statuses).
- * Returns ordered by created_at descending.
+ * Hämta alla maskiner för admin (alla statusar).
+ * Returneras sorterade efter created_at fallande.
  */
 export async function getMachines() {
   const { data, error } = await supabase
@@ -80,8 +80,8 @@ export async function getMachines() {
 }
 
 /**
- * Get all published machines for the public frontend.
- * Ordered by created_at descending.
+ * Hämta alla publicerade maskiner för den publika sajten.
+ * Sorterade efter created_at fallande.
  */
 export async function getPublicMachines() {
   const { data, error } = await supabase
@@ -102,7 +102,7 @@ export async function getPublicMachines() {
 }
 
 /**
- * Get a single machine by ID (for the edit form).
+ * Hämta en enskild maskin via ID (för redigeringsformuläret).
  */
 export async function getMachineById(id) {
   const { data, error } = await supabase
@@ -119,7 +119,7 @@ export async function getMachineById(id) {
 }
 
 /**
- * Get a single public machine by slug.
+ * Hämta en enskild publik maskin via slug.
  */
 export async function getMachineBySlug(slug) {
   const { data, error } = await supabase
@@ -137,7 +137,7 @@ export async function getMachineBySlug(slug) {
 }
 
 /**
- * Get similar machines (same type, published, excluding current).
+ * Hämta liknande maskiner (samma kategori, publicerade, exklusive aktuell maskin).
  */
 export async function getSimilarMachines(currentMachineId, category, limitCount = 3) {
   let query = supabase
@@ -165,8 +165,8 @@ export async function getSimilarMachines(currentMachineId, category, limitCount 
 }
 
 /**
- * Create a new machine.
- * Generates and deduplicates slug automatically.
+ * Skapa en ny maskin.
+ * Genererar och avduplicerar slug automatiskt.
  */
 export async function createMachine(fields) {
   const baseSlug = generateSlug(fields.name);
@@ -197,8 +197,8 @@ export async function createMachine(fields) {
 }
 
 /**
- * Update an existing machine.
- * Slug is NOT auto-regenerated – only updated if explicitly changed.
+ * Uppdatera en befintlig maskin.
+ * Slug genereras INTE om automatiskt – uppdateras bara om den uttryckligen ändras.
  */
 export async function updateMachine(id, fields) {
   const { data, error } = await supabase
@@ -217,7 +217,7 @@ export async function updateMachine(id, fields) {
       features_en: fields.features_en         || null,
       specs:       fields.specs               || {},
       specs_en:    fields.specs_en            || null,
-      // updated_at is handled by the database trigger
+      // updated_at hanteras av databastriggern
     })
     .eq('id', id)
     .select()
@@ -227,9 +227,9 @@ export async function updateMachine(id, fields) {
 }
 
 /**
- * Delete a machine by ID.
- * machine_images rows are cascaded by the database (ON DELETE CASCADE).
- * Storage files must be cleaned up separately (Phase 6).
+ * Radera en maskin via ID.
+ * Rader i machine_images tas bort automatiskt av databasen (ON DELETE CASCADE).
+ * Filer i lagringen måste rensas separat (fas 6).
  */
 export async function deleteMachine(id) {
   const { error } = await supabase
@@ -241,7 +241,7 @@ export async function deleteMachine(id) {
 }
 
 // ─────────────────────────────────────────────────────────────
-// Status helpers
+// Hjälpfunktioner för status
 // ─────────────────────────────────────────────────────────────
 
 export const STATUS_OPTIONS = [
@@ -260,7 +260,7 @@ export function getStatusColor(status) {
 }
 
 // ─────────────────────────────────────────────────────────────
-// Image Management
+// Bildhantering
 // ─────────────────────────────────────────────────────────────
 
 const MAX_IMAGE_SIZE_MB = 10;
@@ -279,7 +279,7 @@ export async function uploadMachineImage(machineId, file) {
   const randomStr = Math.random().toString(36).substring(2, 8);
   const storagePath = `${machineId}/${timestamp}_${randomStr}_${safeName}`;
 
-  // Upload to Storage
+  // Ladda upp till lagringen (Storage)
   const { error: storageError } = await supabase.storage
     .from('machine-images')
     .upload(storagePath, file, { cacheControl: '3600', upsert: false });
@@ -294,7 +294,7 @@ export async function uploadMachineImage(machineId, file) {
 
   const imageUrl = publicUrlData.publicUrl;
 
-  // Find current images to determine sort_order and is_primary
+  // Hämta befintliga bilder för att avgöra sort_order och is_primary
   const { data: currentImages } = await supabase
     .from('machine_images')
     .select('sort_order, is_primary')
@@ -303,7 +303,7 @@ export async function uploadMachineImage(machineId, file) {
   const isFirstImage = !currentImages || currentImages.length === 0;
   const nextSortOrder = isFirstImage ? 0 : Math.max(...currentImages.map(i => i.sort_order || 0)) + 1;
 
-  // Insert to DB
+  // Infoga i databasen
   const { data: insertedImage, error: dbError } = await supabase
     .from('machine_images')
     .insert([{
@@ -317,7 +317,7 @@ export async function uploadMachineImage(machineId, file) {
     .select()
     .single();
 
-  // Rollback storage file if DB insert fails
+  // Rulla tillbaka filen i lagringen om databasinfogningen misslyckas
   if (dbError) {
     await supabase.storage.from('machine-images').remove([storagePath]);
     return { error: new Error('Databas-fel vid sparning av bild: ' + dbError.message) };
@@ -327,7 +327,7 @@ export async function uploadMachineImage(machineId, file) {
 }
 
 export async function deleteMachineImage(imageId, storagePath) {
-  // 1. Delete from DB first
+  // 1. Radera från databasen först
   const { error: dbError } = await supabase
     .from('machine_images')
     .delete()
@@ -337,14 +337,14 @@ export async function deleteMachineImage(imageId, storagePath) {
     return { error: dbError };
   }
 
-  // 2. Delete from Storage
+  // 2. Radera från lagringen (Storage)
   const { error: storageError } = await supabase.storage
     .from('machine-images')
     .remove([storagePath]);
 
   if (storageError) {
-    // If storage deletion fails, we return error but DB row is already gone.
-    // In a perfect system we'd use a background job, but this is acceptable for admin tools.
+    // Om radering från lagringen misslyckas loggas en varning medan databasraden redan är borta.
+    // För adminverktyget är detta acceptabelt utan separat bakgrundsjobb.
     console.warn('Failed to delete storage file, but DB row was deleted:', storageError);
   }
 
@@ -352,12 +352,12 @@ export async function deleteMachineImage(imageId, storagePath) {
 }
 
 export async function setPrimaryMachineImage(machineId, imageId) {
-  // The database trigger 'enforce_single_primary_image' will handle unsetting other images
+  // Databastriggern 'enforce_single_primary_image' hanterar nollställning av övriga bilder
   const { data, error } = await supabase
     .from('machine_images')
     .update({ is_primary: true })
     .eq('id', imageId)
-    .eq('machine_id', machineId) // safety check
+    .eq('machine_id', machineId) // säkerhetskontroll
     .select()
     .single();
 
@@ -365,9 +365,8 @@ export async function setPrimaryMachineImage(machineId, imageId) {
 }
 
 export async function updateImageSortOrder(updates) {
-  // updates is an array of objects: { id: 'uuid', sort_order: number }
-  // We can update them sequentially or via a batch rpc if available.
-  // Sequential updates are fine for < 10 items.
+  // updates är en lista med objekt: { id: 'uuid', sort_order: number }
+  // Uppdateringarna körs parallellt, vilket fungerar bra för normala bildmängder.
   const promises = updates.map(update => 
     supabase
       .from('machine_images')

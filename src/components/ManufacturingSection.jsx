@@ -8,10 +8,10 @@ const ManufacturingSection = ({ onOpenModal }) => {
     <section className="manufacturing-section">
       <div className="manufacturing-container">
 
-        {/* Image Side */}
+        {/* Bildsida */}
         <div className="manufacturing-image" />
 
-        {/* Content Side */}
+        {/* Innehållssida */}
         <div className="manufacturing-content">
           <div className="mobile-center manufacturing-text-wrap">
             <span className="eyebrow">{t('manufacturing.eyebrow')}</span>
@@ -36,7 +36,7 @@ const ManufacturingSection = ({ onOpenModal }) => {
       </div>
       <style>{`
         .manufacturing-section {
-          /* Remove default section padding since this is a full-bleed block */
+          /* Ta bort standard-padding eftersom detta är ett utfallande block */
           padding: 0;
         }
         

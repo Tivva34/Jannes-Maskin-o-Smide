@@ -12,7 +12,7 @@ const BrandsSection = () => {
           <h2>{t('brands.heading')}</h2>
         </div>
 
-        {/* Brand names are proper nouns – not translated */}
+        {/* Varumärkesnamn är egennamn – översätts inte */}
         <div style={{
           display: 'flex',
           flexWrap: 'wrap',

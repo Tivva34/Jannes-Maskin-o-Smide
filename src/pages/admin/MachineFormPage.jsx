@@ -15,7 +15,7 @@ import {
 } from '../../lib/machinesService';
 import { createSaleRecord, revertSaleRecord } from '../../lib/salesService';
 
-// ─── Reusable form field wrapper ───────────────────────────────────────────────
+// ─── Återanvändbar omslutning för formulärfält ─────────────────────────────────
 const Field = ({ label, hint, required, children }) => (
   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
     <label style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-primary)' }}>
@@ -43,12 +43,12 @@ const inputStyle = {
 const focusInput = e => { e.target.style.borderColor = 'var(--accent-primary)'; };
 const blurInput = e => { e.target.style.borderColor = 'var(--border-color)'; };
 
-// ─── Empty form state ──────────────────────────────────────────────────────────
+// ─── Tomt formulärtillstånd ────────────────────────────────────────────────────
 const EMPTY_FORM = {
   name: '', name_en: '', type: 'other', category: 'other', year: '', price: '',
   description: '', description_en: '', status: 'draft',
   features: [], features_en: [],        // string[]
-  specs: [], specs_en: [],           // [{key:'', value:''}]  → converted to {} on save
+  specs: [], specs_en: [],           // [{key:'', value:''}] → omvandlas till {} vid sparning
 };
 
 const CATEGORY_OPTIONS = [
@@ -112,34 +112,34 @@ const CATEGORY_TYPES = {
   ]
 };
 
-// ─── Main component ────────────────────────────────────────────────────────────
+// ─── Huvudkomponent ────────────────────────────────────────────────────────────
 const MachineFormPage = () => {
-  const { id } = useParams();   // undefined = new machine
+  const { id } = useParams();   // undefined = ny maskin
   const navigate = useNavigate();
   const isEditing = Boolean(id);
 
   const [form, setForm] = useState(EMPTY_FORM);
   const [slugPreview, setSlugPreview] = useState('');
-  const [slugManual, setSlugManual] = useState(false); // user manually edited slug
+  const [slugManual, setSlugManual] = useState(false); // användaren har ändrat slugen manuellt
   const [loadingData, setLoadingData] = useState(isEditing);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  // Sales tracking
+  // Försäljningsuppföljning
   const [originalStatus, setOriginalStatus] = useState('draft');
   const [showSoldModal, setShowSoldModal] = useState(false);
   const [tempSoldPrice, setTempSoldPrice] = useState('');
   const [confirmedSoldPrice, setConfirmedSoldPrice] = useState(null);
 
-  // Images
+  // Bilder
   const [images, setImages] = useState([]);
-  const [deletedImages, setDeletedImages] = useState([]); // Track images to delete on save
+  const [deletedImages, setDeletedImages] = useState([]); // Spåra bilder som ska tas bort vid sparning
   const [uploading] = useState(false);
   const [createdId, setCreatedId] = useState(null);
   const [prevName, setPrevName] = useState(form.name);
 
-  // ── Auto-generate slug from name (only when NOT editing or manual) ───────────
+  // ── Generera slug automatiskt från namnet (endast om ej manuellt ändrad) ────
   if (form.name !== prevName) {
     setPrevName(form.name);
     if (!slugManual) {
@@ -147,7 +147,7 @@ const MachineFormPage = () => {
     }
   }
 
-  // ── Load existing machine for editing ────────────────────────────────────────
+  // ── Hämta befintlig maskin för redigering ───────────────────────────────────
   useEffect(() => {
     async function loadData() {
       if (!isEditing) return;
@@ -191,7 +191,7 @@ const MachineFormPage = () => {
     loadData();
   }, [id, isEditing]);
 
-  // ── Cleanup Object URLs on unmount ───────────────────────────────────────────
+  // ── Städa upp Object-URL:er vid avmontering ─────────────────────────────────
   const imagesRef = useRef(images);
   useEffect(() => {
     imagesRef.current = images;
@@ -207,14 +207,14 @@ const MachineFormPage = () => {
     };
   }, []);
 
-  // ── Form helpers ─────────────────────────────────────────────────────────────
+  // ── Formulärhjälpare ────────────────────────────────────────────────────────
   const set = (key, value) => {
     setForm(prev => ({ ...prev, [key]: value }));
     setError('');
     setSuccess('');
   };
 
-  // Features
+  // Egenskaper
   const addFeature = () => set('features', [...form.features, '']);
   const setFeature = (i, v) => {
     const arr = [...form.features]; arr[i] = v; set('features', arr);
@@ -227,7 +227,7 @@ const MachineFormPage = () => {
   };
   const removeFeatureEn = i => set('features_en', form.features_en.filter((_, idx) => idx !== i));
 
-  // Specs
+  // Specifikationer
   const addSpec = () => set('specs', [...form.specs, { key: '', value: '' }]);
   const setSpec = (i, field, v) => {
     const arr = form.specs.map((s, idx) => idx === i ? { ...s, [field]: v } : s);
@@ -242,7 +242,7 @@ const MachineFormPage = () => {
   };
   const removeSpecEn = i => set('specs_en', form.specs_en.filter((_, idx) => idx !== i));
 
-  // ── Submit ────────────────────────────────────────────────────────────────────
+  // ── Spara formulär ──────────────────────────────────────────────────────────
   const handleSubmit = async e => {
     e.preventDefault();
     setError('');
@@ -286,13 +286,13 @@ const MachineFormPage = () => {
         setCreatedId(data.id);
       }
 
-      // 1. Delete removed DB images
+      // 1. Ta bort raderade databasbilder
       for (const img of deletedImages) {
         const { error: err } = await deleteMachineImage(img.id, img.storage_path);
         if (err) console.error("Failed to delete image:", err);
       }
 
-      // 2. Upload new local images
+      // 2. Ladda upp nya lokala bilder
       let uploadedIdsMap = {};
       for (const img of images) {
         if (img.is_local) {
@@ -302,7 +302,7 @@ const MachineFormPage = () => {
         }
       }
 
-      // 3. Update Sort Order & Primary status
+      // 3. Uppdatera sorteringsordning och primärbild
       const updates = images.map((img, idx) => ({
         id: img.is_local ? uploadedIdsMap[img.id] : img.id,
         sort_order: idx
@@ -320,7 +320,7 @@ const MachineFormPage = () => {
         if (errPrim) throw new Error('Kunde inte sätta primärbild: ' + errPrim.message);
       }
 
-      // Handle sales record
+      // Hantera försäljningspost
       if (form.status === 'sold' && originalStatus !== 'sold') {
         const { error: saleErr } = await createSaleRecord({
           item_id: currentId,
@@ -339,7 +339,7 @@ const MachineFormPage = () => {
 
       setSaving(false);
       
-      // Navigate directly to the list view on success
+      // Navigera direkt till listvyn när sparningen lyckats
       navigate('/admin?tab=machines');
       return;
     } catch (err) {
@@ -349,7 +349,7 @@ const MachineFormPage = () => {
     }
   };
 
-  // ── Image Handlers ────────────────────────────────────────────────────────────
+  // ── Bildhanterare ───────────────────────────────────────────────────────────
 
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files);
@@ -435,7 +435,7 @@ const MachineFormPage = () => {
     setImages(newImages);
   };
 
-  // ── Loading state ─────────────────────────────────────────────────────────────
+  // ── Laddningstillstånd ──────────────────────────────────────────────────────
   if (loadingData) {
     return (
       <div style={{ minHeight: '100vh', backgroundColor: 'var(--bg-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', color: 'var(--text-muted)' }}>
@@ -446,10 +446,10 @@ const MachineFormPage = () => {
     );
   }
 
-  // ── Render ────────────────────────────────────────────────────────────────────
+  // ── Rendering ───────────────────────────────────────────────────────────────
   return (
     <div style={{ minHeight: '100vh', backgroundColor: 'var(--bg-primary)' }}>
-      {/* Top bar */}
+      {/* Toppfält */}
       <header style={{ backgroundColor: 'var(--bg-surface)', borderBottom: '1px solid var(--border-color)' }}>
         <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '64px' }}>
           <Link to="/admin?tab=machines" style={{ fontFamily: 'Outfit,sans-serif', fontWeight: 800, fontSize: '1.1rem', textDecoration: 'none' }}>
@@ -462,13 +462,13 @@ const MachineFormPage = () => {
         </div>
       </header>
 
-      {/* Form */}
+      {/* Formulär */}
       <main style={{ maxWidth: '800px', margin: '0 auto', padding: '2rem 1.5rem' }}>
         <h1 style={{ fontSize: '1.5rem', fontFamily: 'Outfit,sans-serif', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 2rem', letterSpacing: '-0.02em' }}>
           {isEditing ? 'Redigera maskin' : 'Lägg till maskin'}
         </h1>
 
-        {/* Alerts */}
+        {/* Meddelanderutor */}
         {error && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', backgroundColor: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: '8px', padding: '0.875rem 1rem', marginBottom: '1.5rem', color: '#f87171', fontSize: '0.9375rem' }}>
             <AlertTriangle size={16} style={{ flexShrink: 0 }} />
@@ -483,7 +483,7 @@ const MachineFormPage = () => {
         )}
 
         <form onSubmit={handleSubmit} noValidate>
-          {/* ── Section: Grundinfo ── */}
+          {/* ── Sektion: Grundinfo ── */}
           <section style={sectionStyle}>
             <h2 style={sectionHeading}>Grundinformation</h2>
             <div style={gridTwo}>
@@ -674,7 +674,7 @@ const MachineFormPage = () => {
             </div>
           </section>
 
-          {/* ── Section: Images ── */}
+          {/* ── Sektion: Bilder ── */}
           <section style={sectionStyle}>
               <h2 style={{ ...sectionHeading, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <ImageIcon size={20} color="var(--accent-primary)" /> Bilder
@@ -683,7 +683,7 @@ const MachineFormPage = () => {
                 Maskinens bilder visas offentligt i galleriet. Den primära bilden används som huvudbild.
               </p>
 
-              {/* Upload Button */}
+              {/* Uppladdningsknapp */}
               <div style={{ marginBottom: '1.5rem' }}>
                 <label style={{
                   display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
@@ -712,7 +712,7 @@ const MachineFormPage = () => {
                 </div>
               </div>
 
-              {/* Image Grid */}
+              {/* Bildrutnät */}
               {images.length > 0 ? (
                 <div style={{
                   display: 'grid',
@@ -744,7 +744,7 @@ const MachineFormPage = () => {
                       </div>
                       <div style={{ padding: '0.75rem', display: 'flex', justifyContent: 'space-between', backgroundColor: 'var(--bg-surface)' }}>
 
-                        {/* Left actions: sorting */}
+                        {/* Vänster åtgärder: sortering */}
                         <div style={{ display: 'flex', gap: '0.25rem' }}>
                           <button type="button" onClick={() => handleMoveImage(idx, 'up')} disabled={idx === 0}
                             style={imgActionBtn(idx === 0)} aria-label="Flytta upp">
@@ -756,7 +756,7 @@ const MachineFormPage = () => {
                           </button>
                         </div>
 
-                        {/* Right actions: star and trash */}
+                        {/* Höger åtgärder: huvudbild och radera */}
                         <div style={{ display: 'flex', gap: '0.25rem' }}>
                           <button type="button" onClick={() => handleSetPrimary(img.id)}
                             style={{ ...imgActionBtn(img.is_primary), color: img.is_primary ? 'var(--accent-primary)' : 'var(--text-secondary)' }}
@@ -779,7 +779,7 @@ const MachineFormPage = () => {
               )}
           </section>
 
-          {/* ── Section: Status ── */}
+          {/* ── Sektion: Status ── */}
           <section style={sectionStyle}>
             <h2 style={sectionHeading}>Status & Publicering</h2>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
@@ -822,7 +822,7 @@ const MachineFormPage = () => {
             </div>
           </section>
 
-          {/* ── Actions ── */}
+          {/* ── Åtgärder ── */}
           <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', paddingTop: '1rem' }}>
             <button
               type="submit"
@@ -842,12 +842,12 @@ const MachineFormPage = () => {
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
         @media (max-width: 640px) {
-          /* Stack specs grid on very small screens */
+          /* Stapla specifikationsrutnätet på mycket små skärmar */
           .specs-grid { grid-template-columns: 1fr !important; }
         }
       `}</style>
       
-      {/* Sold Modal */}
+      {/* Modal för såldmarkering */}
       {showSoldModal && (
         <div style={{
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
@@ -912,7 +912,7 @@ const MachineFormPage = () => {
   );
 };
 
-// Shared section styles
+// Gemensamma sektionsstilar
 const sectionStyle = {
   backgroundColor: 'var(--bg-surface)',
   border: '1px solid var(--border-color)',

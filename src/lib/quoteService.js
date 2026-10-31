@@ -1,8 +1,8 @@
 import { supabase } from './supabase';
 
 /**
- * Creates a new quote request/lead.
- * This can be done by a public (unauthenticated) user.
+ * Skapar en ny offertförfrågan/lead.
+ * Detta kan göras av en publik (ej inloggad) användare.
  */
 export async function createQuoteRequest(fields) {
   const { data, error } = await supabase
@@ -24,8 +24,8 @@ export async function createQuoteRequest(fields) {
 }
 
 /**
- * Gets all quote requests for the admin dashboard.
- * Requires authenticated user.
+ * Hämtar alla offertförfrågningar till adminpanelen.
+ * Kräver inloggad användare.
  */
 export async function getQuoteRequests() {
   const { data, error } = await supabase
@@ -42,8 +42,8 @@ export async function getQuoteRequests() {
 }
 
 /**
- * Updates the status of a quote request.
- * Requires authenticated user.
+ * Uppdaterar status på en offertförfrågan.
+ * Kräver inloggad användare.
  */
 export async function updateQuoteStatus(id, status) {
   const { data, error } = await supabase
@@ -57,8 +57,8 @@ export async function updateQuoteStatus(id, status) {
 }
 
 /**
- * Deletes a quote request.
- * Requires authenticated user.
+ * Raderar en offertförfrågan.
+ * Kräver inloggad användare.
  */
 export async function deleteQuoteRequest(id) {
   const { data, error } = await supabase
@@ -70,8 +70,8 @@ export async function deleteQuoteRequest(id) {
 }
 
 /**
- * Marks unread customer messages as read for a given quote request.
- * Requires authenticated user.
+ * Markerar olästa kundmeddelanden som lästa för en viss offertförfrågan.
+ * Kräver inloggad användare.
  */
 export async function markCustomerMessagesAsRead(quoteRequestId) {
   const { data, error } = await supabase
@@ -92,9 +92,9 @@ export async function markCustomerMessagesAsRead(quoteRequestId) {
 }
 
 /**
- * Sends a reply to a quote request via Edge Function.
- * Requires authenticated user.
- * NOTE: Enhanced error logging enabled for debugging (temporary).
+ * Skickar ett svar på en offertförfrågan via Edge Function.
+ * Kräver inloggad användare.
+ * OBS: Utökad felloggning aktiverad för felsökning.
  */
 export async function sendQuoteReply(quoteRequestId, message, attachments = []) {
   const { data: { session } } = await supabase.auth.getSession();
@@ -107,16 +107,16 @@ export async function sendQuoteReply(quoteRequestId, message, attachments = []) 
   });
 
   if (error) {
-    // Log the raw error object
+    // Logga det råa felobjektet
     console.error('[send-quote-reply] invoke error:', error);
     console.error('[send-quote-reply] error.name:', error?.name);
     console.error('[send-quote-reply] error.message:', error?.message);
     console.error('[send-quote-reply] error.status:', error?.status);
 
-    // Try to extract the actual response body from FunctionsHttpError
+    // Försök extrahera det faktiska svarsinnehållet från FunctionsHttpError
     if (error?.context) {
       try {
-        // Clone to avoid consuming the stream
+        // Klona för att undvika att förbruka strömmen
         const cloned = error.context.clone?.() ?? error.context;
         const body = await cloned.json().catch(() => null);
         const text = body === null ? await error.context.text?.() : null;
@@ -124,7 +124,7 @@ export async function sendQuoteReply(quoteRequestId, message, attachments = []) 
         console.error('[send-quote-reply] response body (text):', text);
         console.error('[send-quote-reply] response status:', error.context.status);
 
-        // Return a detailed error message for the UI
+        // Returnera ett detaljerat felmeddelande till gränssnittet
         const detail = body?.error ?? text ?? error.message;
         return { error: new Error(`[HTTP ${error.context.status}] ${detail}`) };
       } catch (parseErr) {
@@ -145,14 +145,14 @@ export async function sendQuoteReply(quoteRequestId, message, attachments = []) 
 
 
 // ─────────────────────────────────────────────────────────────
-// Status helpers
+// Hjälpfunktioner för status
 // ─────────────────────────────────────────────────────────────
 
 export const QUOTE_STATUS_OPTIONS = [
-  { value: 'new',       label: 'Ny',         color: '#3b82f6' }, // Blue
-  { value: 'contacted', label: 'Kontaktad',  color: '#f59e0b' }, // Amber
-  { value: 'completed', label: 'Klar',       color: '#22c55e' }, // Green
-  { value: 'archived',  label: 'Arkiverad',  color: '#6b7277' }, // Gray
+  { value: 'new',       label: 'Ny',         color: '#3b82f6' }, // Blå
+  { value: 'contacted', label: 'Kontaktad',  color: '#f59e0b' }, // Gul/orange
+  { value: 'completed', label: 'Klar',       color: '#22c55e' }, // Grön
+  { value: 'archived',  label: 'Arkiverad',  color: '#6b7277' }, // Grå
 ];
 
 export function getQuoteStatusLabel(status) {

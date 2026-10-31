@@ -64,7 +64,7 @@ function AdminLayout() {
             </ProtectedRoute>
           }
         />
-        {/* Catch-all inside admin → redirect to /admin */}
+        {/* Reservrutt inom admin → omdirigera till /admin */}
         <Route path="*" element={<Navigate to="/admin" replace />} />
       </Routes>
     </>

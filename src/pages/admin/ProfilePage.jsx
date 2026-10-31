@@ -18,13 +18,13 @@ export default function ProfilePage() {
   const [error, setError]       = useState('');
   const [success, setSuccess]   = useState('');
 
-  // ── Profile fields ──────────────────────────────────────────────────────
+  // ── Profilfält ────────────────────────────────────────────────────────────
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName]   = useState('');
   const [name, setName]           = useState('');
   const [phone, setPhone]         = useState('');
 
-  // ── Notification preferences ─────────────────────────────────────────────
+  // ── Notifikationsinställningar ────────────────────────────────────────────
   const [notifications, setNotifications] = useState({
     machine_inquiries:   false,
     inventory_inquiries: false,
@@ -36,7 +36,7 @@ export default function ProfilePage() {
     system_notifications: true
   });
 
-  // ── Push notification state ────────────────────────────────────────────────
+  // ── Tillstånd för pushnotiser ─────────────────────────────────────────────
   // 'checking' | 'unsupported' | 'denied' | 'inactive' | 'active' | 'error'
   const [pushStatus, setPushStatus]       = useState('checking');
   const [pushLoading, setPushLoading]     = useState(false);
@@ -79,7 +79,7 @@ export default function ProfilePage() {
     }));
   };
 
-  // ── Push handlers ──────────────────────────────────────────────────────────
+  // ── Hanterare för pushnotiser ─────────────────────────────────────────────
   const handleSubscribe = async () => {
     setPushLoading(true);
     setPushError('');
@@ -129,7 +129,7 @@ export default function ProfilePage() {
     setSuccess('');
 
     try {
-      // 1. Update basic profile info using the RPC
+      // 1. Uppdatera grundläggande profiluppgifter via RPC
       const { error: profileError } = await supabase.rpc('update_own_profile', {
         p_first_name: firstName,
         p_last_name: lastName,
@@ -139,7 +139,7 @@ export default function ProfilePage() {
 
       if (profileError) throw profileError;
 
-      // 2. Update notification preferences using RLS
+      // 2. Uppdatera notifikationsinställningar via RLS
       const prefPayload = { ...notifications };
       delete prefPayload.id;
       delete prefPayload.user_id;
@@ -184,7 +184,7 @@ export default function ProfilePage() {
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: 'var(--bg-primary)' }}>
-      {/* Header (similar to forms) */}
+      {/* Sidhuvud (liknar formulärsidorna) */}
       <header style={{ backgroundColor: 'var(--bg-surface)', borderBottom: '1px solid var(--border-color)', position: 'sticky', top: 0, zIndex: 10 }}>
         <div style={{ maxWidth: '800px', margin: '0 auto', padding: '1rem 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>

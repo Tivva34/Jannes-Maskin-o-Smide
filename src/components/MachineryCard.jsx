@@ -41,7 +41,7 @@ const MachineryCard = ({ machine }) => {
         if (img) img.style.transform = 'scale(1)';
       }}
     >
-      {/* Image */}
+      {/* Bild */}
       <div style={{ position: 'relative', height: '240px', overflow: 'hidden', backgroundColor: '#000' }}>
         <img
           src={imageUrl}
@@ -68,7 +68,7 @@ const MachineryCard = ({ machine }) => {
         )}
       </div>
 
-      {/* Content */}
+      {/* Innehåll */}
       <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
         <div style={{ marginBottom: '1rem' }}>
           <h3 style={{ fontSize: '1.375rem', marginBottom: '0.25rem', color: 'var(--text-primary)' }}>{displayMachineName}</h3>
