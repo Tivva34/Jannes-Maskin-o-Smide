@@ -21,7 +21,7 @@ import SalesPanel from '../../components/admin/SalesPanel';
 import UsersPanel from '../../components/admin/UsersPanel';
 import translations from '../../i18n/translations';
 
-// ─── Confirmation modal ────────────────────────────────────────────────────────
+// ─── Bekräftelsemodal ──────────────────────────────────────────────────────────
 const DeleteModal = ({ machine, onConfirm, onCancel, deleting }) => (
   <div style={modal.overlay} onClick={onCancel}>
     <div style={modal.box} onClick={e => e.stopPropagation()}>
@@ -74,7 +74,7 @@ const modal = {
   },
 };
 
-// ─── Status badge ──────────────────────────────────────────────────────────────
+// ─── Statusmärke ───────────────────────────────────────────────────────────────
 const StatusBadge = ({ status, type = 'machine' }) => {
   const label = type === 'machine' ? getStatusLabel(status) : getInventoryStatusLabel(status);
   const color = type === 'machine' ? getStatusColor(status) : getInventoryStatusColor(status);
@@ -93,7 +93,7 @@ const StatusBadge = ({ status, type = 'machine' }) => {
   );
 };
 
-// ─── Stat card ─────────────────────────────────────────────────────────────────
+// ─── Statistikkort ─────────────────────────────────────────────────────────────
 const StatCard = ({ label, value, accent, isActive, onClick }) => (
   <button onClick={onClick} className="stat-card" style={{
     backgroundColor: isActive ? 'var(--bg-primary)' : 'var(--bg-surface)',
@@ -121,7 +121,7 @@ const StatCard = ({ label, value, accent, isActive, onClick }) => (
   </button>
 );
 
-// ─── Main component ────────────────────────────────────────────────────────────
+// ─── Huvudkomponent ────────────────────────────────────────────────────────────
 const AdminDashboard = () => {
   const { profile, session, signOut, updatePassword } = useAuth();
   const navigate = useNavigate();
@@ -137,7 +137,7 @@ const AdminDashboard = () => {
   const canWriteInventory = hasPerm('inventory:write') || profile?.role === 'employee';
   const canDeleteInventory = hasPerm('inventory:delete');
   const canViewQuotes = hasPerm('quotes:read') || profile?.role === 'employee';
-  const canViewStats = isAdminOrSuper; // explicitly blocking employee and intern
+  const canViewStats = isAdminOrSuper; // blockerar uttryckligen anställd och praktikant
   const canViewUsers = isAdminOrSuper;
 
   const [isLightMode, setIsLightMode] = useState(() => {
@@ -227,7 +227,7 @@ const AdminDashboard = () => {
   const [unreadRepliesCount, setUnreadRepliesCount] = useState(0);
   const [loading, setLoading]       = useState(true);
   const [error, setError]           = useState('');
-  const [toDelete, setToDelete]     = useState(null);   // item to confirm delete
+  const [toDelete, setToDelete]     = useState(null);   // objekt som väntar på raderingsbekräftelse
   const [deleting, setDeleting]     = useState(false);
 
   const loadRequestId = useRef(0);
@@ -239,7 +239,7 @@ const AdminDashboard = () => {
     if (!silent) setLoading(true);
     if (reqId === loadRequestId.current) setError('');
     
-    // Load machines
+    // Hämta maskiner
     const { data: mData, error: mErr } = await getMachines();
     
     if (reqId !== loadRequestId.current) return;
@@ -247,7 +247,7 @@ const AdminDashboard = () => {
     if (mErr) {
       setError('Kunde inte hämta maskiner: ' + mErr.message);
       
-      // JWT ISSUED AT FUTURE DIAGNOSTICS
+      // Diagnostik för JWT-tidsstämpel i framtiden
       if (mErr.message.includes('future') && session) {
         try {
           const payload = JSON.parse(atob(session.access_token.split('.')[1]));
@@ -267,7 +267,7 @@ const AdminDashboard = () => {
       setMachines(mData ?? []);
     }
 
-    // Load inventory
+    // Hämta lösöre
     const { data: iData, error: iErr } = await getInventoryItems();
     if (reqId !== loadRequestId.current) return;
     
@@ -277,7 +277,7 @@ const AdminDashboard = () => {
       setInventory(iData ?? []);
     }
     
-    // Check new quotes count
+    // Kontrollera antal nya förfrågningar
     const { data: qData } = await getQuoteRequests();
     if (reqId !== loadRequestId.current) return;
     
@@ -285,7 +285,7 @@ const AdminDashboard = () => {
       setNewQuotesCount(qData.filter(q => q.status === 'new').length);
 
       const actionCount = qData.filter(q => {
-        if (q.status === 'new') return false; // Handled by newQuotesCount
+        if (q.status === 'new') return false; // Hanteras av newQuotesCount
         if (q.status === 'completed' || q.status === 'archived') return false;
         const sorted = [...(q.messages || [])].sort((a,b) => new Date(a.created_at) - new Date(b.created_at));
         const last = sorted[sorted.length - 1];
@@ -320,7 +320,7 @@ const AdminDashboard = () => {
     if (!toDelete) return;
     setDeleting(true);
     
-    const isMachine = toDelete.category !== undefined; // machines have category, inventory does not
+    const isMachine = toDelete.category !== undefined; // maskiner har category i denna kontext
     
     if (isMachine) {
       const { error: err } = await deleteMachine(toDelete.id);
@@ -342,7 +342,7 @@ const AdminDashboard = () => {
     setToDelete(null);
   };
 
-  // Stats
+  // Statistik
   const stats = {
     total:     machines.length,
     published: machines.filter(m => m.status === 'published').length,
@@ -437,7 +437,7 @@ const AdminDashboard = () => {
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: 'var(--bg-primary)', display: 'flex', flexDirection: 'column' }}>
-      {/* ── Top bar ── */}
+      {/* ── Toppfält ── */}
       <header style={{ backgroundColor: 'var(--bg-surface)', borderBottom: '1px solid var(--border-color)', flexShrink: 0 }}>
         <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '64px' }}>
           <Link to="/admin" style={{ fontFamily: 'Outfit,sans-serif', fontWeight: 800, fontSize: '1.1rem', letterSpacing: '-0.01em', textDecoration: 'none' }}>
@@ -459,7 +459,7 @@ const AdminDashboard = () => {
         </div>
       </header>
 
-      {/* Hamburger Mobile Menu Overlay */}
+      {/* Mobilmeny (hamburgermeny) */}
       {isMobileMenuOpen && (
         <div className="admin-mobile-menu-overlay" onClick={() => setIsMobileMenuOpen(false)}>
           <div className="admin-mobile-menu-content" onClick={e => e.stopPropagation()}>
@@ -484,10 +484,10 @@ const AdminDashboard = () => {
         </div>
       )}
 
-      {/* ── Content ── */}
+      {/* ── Innehåll ── */}
       <main style={{ flex: 1, maxWidth: '1280px', width: '100%', margin: '0 auto', padding: '2rem 1.5rem' }}>
 
-        {/* Tabs */}
+        {/* Flikar */}
         <nav 
           aria-label="Huvudnavigation"
           className="admin-nav"
@@ -552,7 +552,7 @@ const AdminDashboard = () => {
           )}
         </nav>
 
-        {/* Page title + add button */}
+        {/* Sidtitel och lägg till-knapp */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem', marginBottom: '2rem' }}>
           <div>
             <h1 style={{ fontSize: '1.75rem', fontFamily: 'Outfit,sans-serif', fontWeight: 700, color: 'var(--text-primary)', margin: 0, letterSpacing: '-0.02em' }}>
@@ -583,7 +583,7 @@ const AdminDashboard = () => {
           )}
         </div>
 
-        {/* Subtabs for Machines/Inventory */}
+        {/* Underflikar för maskiner/lösöre */}
         {(activeTab === 'machines' || activeTab === 'inventory') && (
           <div style={{ display: 'flex', width: '100%', marginBottom: '1.5rem', borderBottom: '1px solid var(--border-color)' }}>
             {canViewMachines && (
@@ -637,7 +637,7 @@ const AdminDashboard = () => {
           </div>
         )}
 
-        {/* Stats */}
+        {/* Statistik */}
         {activeTab !== 'quotes' && activeTab !== 'stats' && activeTab !== 'users' && (
           <div className="stat-card-container">
             <StatCard label="Totalt"      value={activeTab === 'machines' ? stats.total : inventoryStats.total}         isActive={statusFilter === 'all'} onClick={() => setStatusFilter('all')} />
@@ -648,7 +648,7 @@ const AdminDashboard = () => {
           </div>
         )}
 
-        {/* Error */}
+        {/* Felmeddelande */}
         {error && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', backgroundColor: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: '8px', padding: '0.875rem 1rem', marginBottom: '1.5rem', color: '#f87171', fontSize: '0.9375rem' }}>
             <AlertTriangle size={16} style={{ flexShrink: 0 }} />
@@ -657,7 +657,7 @@ const AdminDashboard = () => {
           </div>
         )}
 
-        {/* Loading */}
+        {/* Laddningsvy */}
         {loading ? (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4rem', gap: '0.75rem', color: 'var(--text-muted)' }}>
             <div style={{ width: '24px', height: '24px', border: '2px solid var(--border-color)', borderTopColor: 'var(--accent-primary)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
@@ -740,9 +740,9 @@ const AdminDashboard = () => {
         ) : activeTab === 'users' ? (
           <UsersPanel />
         ) : (
-          /* ── Machine table ── */
+          /* ── Maskintabell ── */
           <div style={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border-color)', borderRadius: '12px', overflow: 'hidden' }}>
-            {/* Toolbar: Search and Refresh */}
+            {/* Verktygsfält: sök och uppdatera */}
             <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 1rem', borderBottom: '1px solid var(--border-color)', gap: '1rem' }}>
               <div style={{ position: 'relative', flex: '1 1 200px', maxWidth: '320px' }}>
                 <div style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', pointerEvents: 'none', display: 'flex' }}>
@@ -782,7 +782,7 @@ const AdminDashboard = () => {
               </button>
             </div>
 
-            {/* Desktop table */}
+            {/* Tabell för datorvy */}
             <div className="admin-table-wrap">
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9375rem' }}>
                 <thead>
@@ -918,7 +918,7 @@ const AdminDashboard = () => {
               </table>
             </div>
 
-            {/* Mobile card list (shown instead of table on small screens) */}
+            {/* Kortlista för mobilvy (visas i stället för tabell på små skärmar) */}
             <div className="admin-card-list">
               {activeTab === 'machines' && filteredMachines.map(m => {
                 const defaultImage = 'https://placehold.co/800x600/1e2123/a0a6aa?text=Bild+saknas';
@@ -1013,7 +1013,7 @@ const AdminDashboard = () => {
         )}
       </main>
 
-      {/* ── Delete modal ── */}
+      {/* ── Raderingsmodal ── */}
       {toDelete && (
         <DeleteModal
           machine={toDelete}
@@ -1023,7 +1023,7 @@ const AdminDashboard = () => {
         />
       )}
 
-      {/* ── Change Password Modal ── */}
+      {/* ── Modal för lösenordsbyte ── */}
       {showPasswordModal && (
         <div style={modal.overlay} onClick={() => setShowPasswordModal(false)}>
           <div style={modal.box} onClick={e => e.stopPropagation()}>
@@ -1087,7 +1087,7 @@ const AdminDashboard = () => {
         @keyframes spin { to { transform: rotate(360deg); } }
         @media (max-width: 767px) { .admin-hide-mobile { display: none !important; } }
         
-        /* Hamburger Menu Actions (Mobile < 768px) */
+        /* Åtgärder för hamburgermeny (mobil < 768px) */
         .admin-hamburger-btn { display: none; background: none; border: none; color: var(--text-primary); cursor: pointer; padding: 0.25rem; }
         .admin-show-mobile-text { display: none; }
         
@@ -1119,17 +1119,17 @@ const AdminDashboard = () => {
         }
         @keyframes slideInRight { from { transform: translateX(100%); } to { transform: translateX(0); } }
 
-        /* Mobile: hide table, show card list */
+        /* Mobil: dölj tabell, visa kortlista */
         @media (max-width: 767px) {
           .admin-table-wrap { display: none; }
           .admin-card-list  { display: block; }
         }
-        /* Desktop: show table, hide card list */
+        /* Dator: visa tabell, dölj kortlista */
         @media (min-width: 768px) {
           .admin-table-wrap { display: block; overflow-x: auto; }
           .admin-card-list  { display: none; }
         }
-        /* Responsive Admin Navigation */
+        /* Responsiv adminnavigering */
         .admin-nav {
           display: grid;
           grid-template-columns: 1fr 1fr;
@@ -1220,7 +1220,7 @@ const AdminDashboard = () => {
           }
         }
         
-        /* Responsive Stat Cards */
+        /* Responsiva statistikkort */
         .stat-card-container {
           display: grid;
           grid-template-columns: repeat(auto-fill, minmax(min(100%, 140px), 1fr));

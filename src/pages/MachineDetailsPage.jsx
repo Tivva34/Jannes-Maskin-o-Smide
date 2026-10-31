@@ -30,7 +30,7 @@ const MachineDetailsPage = () => {
   const [touchEnd, setTouchEnd] = useState(null);
   const { t, tDb, lang } = useLang();
 
-  // Arrow keys & escape for lightbox
+  // Piltangenter och Escape för bildvisare (lightbox)
   const handleKeyDown = useCallback((e) => {
     if (!lightboxOpen) return;
     if (e.key === 'Escape') {
@@ -50,7 +50,7 @@ const MachineDetailsPage = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
 
-  // Prevent background scroll when lightbox is open
+  // Förhindra bakgrundsrullning när bildvisaren är öppen
   useEffect(() => {
     document.body.style.overflow = lightboxOpen ? 'hidden' : '';
     return () => { document.body.style.overflow = ''; };
@@ -87,7 +87,7 @@ const MachineDetailsPage = () => {
     };
   }, [machine, lang]);
 
-  // Note: t is stable (memoised in context) – we intentionally only refetch on slug change
+  // Obs: t är stabil (memoiserad i kontexten) – vi hämtar medvetet bara om när slug eller språk ändras
 
   if (loading) {
     return (
@@ -141,12 +141,12 @@ const MachineDetailsPage = () => {
       if (machine?.machine_images && machine.machine_images.length > 1) {
         const cur = machine.machine_images.findIndex(img => img.id === selectedImage?.id);
         if (distanceX > 0) {
-          // Swipe left -> next image
+          // Svep vänster -> nästa bild
           if (cur < machine.machine_images.length - 1) {
             setSelectedImage(machine.machine_images[cur + 1]);
           }
         } else {
-          // Swipe right -> prev image
+          // Svep höger -> föregående bild
           if (cur > 0) {
             setSelectedImage(machine.machine_images[cur - 1]);
           }
@@ -159,7 +159,7 @@ const MachineDetailsPage = () => {
     <>
       <div style={{ backgroundColor: 'var(--bg-primary)', paddingBottom: '4rem' }}>
 
-        {/* Breadcrumbs */}
+        {/* Brödsmulor */}
         <div style={{ backgroundColor: 'var(--bg-surface)', borderBottom: '1px solid var(--border-color)', padding: '1rem 0' }}>
           <div className="container">
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', color: 'var(--text-muted)' }}>
@@ -180,7 +180,7 @@ const MachineDetailsPage = () => {
 
           <div className="machine-details-grid">
 
-            {/* Left – Image Gallery */}
+            {/* Vänster – Bildgalleri */}
             <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
               <div style={{
                 backgroundColor: 'var(--bg-surface)',
@@ -210,7 +210,7 @@ const MachineDetailsPage = () => {
                 />
               </div>
 
-              {/* Thumbnails */}
+              {/* Miniatyrbilder */}
               {machine.machine_images && machine.machine_images.length > 1 && (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 80px), 1fr))', gap: '0.75rem' }}>
                   {machine.machine_images.map(img => (
@@ -241,14 +241,14 @@ const MachineDetailsPage = () => {
 
             </div>
 
-            {/* Right – Machine info */}
+            {/* Höger – Maskininformation */}
             <div className="fade-up delay-100" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
               <h1 style={{ fontSize: '2.5rem', color: 'var(--text-primary)', marginBottom: '0.5rem', lineHeight: 1.2 }}>
                 {displayMachineName}
               </h1>
 
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', marginBottom: '2rem' }}>
-                {/* machine.type and machine.year are DB data */}
+                {/* machine.type och machine.year är databasdata */}
                 {machine.type && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-secondary)' }}>
                     <Tag size={16} color="var(--accent-primary)" /> {tDb(machine.type, 'machinery.types')}
@@ -267,7 +267,7 @@ const MachineDetailsPage = () => {
                   : t('machineDetail.priceOnRequest')}
               </div>
 
-              {/* Description */}
+              {/* Beskrivning */}
               {displayMachineDesc && (
                 <div style={{ marginBottom: '1.5rem' }}>
                   <h3 style={{ fontSize: '1.25rem', marginBottom: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
@@ -279,7 +279,7 @@ const MachineDetailsPage = () => {
                 </div>
               )}
 
-              {/* Features */}
+              {/* Egenskaper */}
               {displayFeatures && displayFeatures.length > 0 && (
                 <div style={{ marginBottom: '1.5rem' }}>
                   <h3 style={{ fontSize: '1.25rem', marginBottom: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
@@ -295,7 +295,7 @@ const MachineDetailsPage = () => {
                 </div>
               )}
 
-              {/* Specs – label translated, spec keys/values are DB data */}
+              {/* Specifikationer – rubrik översatt, nycklar/värden är databasdata */}
               {specsEntries.length > 0 && (
                 <div>
                   <h3 style={{ fontSize: '1.25rem', marginBottom: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
@@ -337,7 +337,7 @@ const MachineDetailsPage = () => {
             </div>
           </div>
 
-          {/* Similar machines (moved below the grid to appear last) */}
+          {/* Liknande maskiner (placerade under rutnätet för att visas sist) */}
           {similarMachines.length > 0 && (
             <div className="similar-machines-section" style={{ marginTop: '4rem', paddingTop: '2rem', borderTop: '1px solid var(--border-color)' }}>
               <h3 style={{ fontSize: '1.5rem', marginBottom: '2rem', color: 'var(--text-primary)' }}>
@@ -393,7 +393,7 @@ const MachineDetailsPage = () => {
           )}
 
         </div>
-      </div> {/* End main content div */}
+      </div> {/* Slut på huvudinnehåll */}
 
 
       <style>{`
@@ -407,7 +407,7 @@ const MachineDetailsPage = () => {
         }
       `}</style>
 
-      {/* Lightbox */}
+      {/* Bildvisare (lightbox) */}
       {lightboxOpen && (
         <div
           style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.9)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', touchAction: 'none' }}
@@ -459,7 +459,7 @@ const MachineDetailsPage = () => {
         </div>
       )}
 
-      {/* Phone Modal */}
+      {/* Telefonmodal */}
       {showPhoneModal && (
         <div 
           style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}
@@ -479,7 +479,7 @@ const MachineDetailsPage = () => {
         </div>
       )}
 
-      {/* Quote Modal */}
+      {/* Offertmodal */}
       <QuoteModal
         isOpen={quoteModalOpen}
         onClose={() => setQuoteModalOpen(false)}

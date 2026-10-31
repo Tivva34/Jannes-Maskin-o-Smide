@@ -7,7 +7,7 @@ import { useLang } from '../contexts/LanguageContext';
 const ContactModal = ({ isOpen, onClose, subject = '' }) => {
   const { t } = useLang();
 
-  // Prevent background scroll when open
+  // Förhindra bakgrundsskroll när modalen är öppen
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -19,7 +19,7 @@ const ContactModal = ({ isOpen, onClose, subject = '' }) => {
     };
   }, [isOpen]);
 
-  // Handle escape key
+  // Stäng modalen med Escape-tangenten
   useEffect(() => {
     const handleEsc = (e) => {
       if (e.key === 'Escape' && isOpen) {
@@ -87,7 +87,7 @@ const ContactModal = ({ isOpen, onClose, subject = '' }) => {
         </button>
 
         <div className="contact-modal-grid">
-          {/* Left Side: Contact Info */}
+          {/* Vänster sida: Kontaktinformation */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
             <div>
               <h2 style={{ fontSize: '2rem', margin: 0, color: 'var(--text-primary)', marginBottom: '1.5rem' }}>
@@ -95,7 +95,7 @@ const ContactModal = ({ isOpen, onClose, subject = '' }) => {
               </h2>
             </div>
             
-            {/* Sales */}
+            {/* Försäljning */}
             <div style={cardStyle}>
               <h3 style={{ fontSize: '1.25rem', marginBottom: '0.5rem', color: 'var(--text-primary)' }}>
                 {t('contact.sales')}
@@ -109,7 +109,7 @@ const ContactModal = ({ isOpen, onClose, subject = '' }) => {
               </a>
             </div>
 
-            {/* Repair */}
+            {/* Reparation */}
             <div style={cardStyle}>
               <h3 style={{ fontSize: '1.25rem', marginBottom: '0.5rem', color: 'var(--text-primary)' }}>
                 {t('contact.repair')}
@@ -124,7 +124,7 @@ const ContactModal = ({ isOpen, onClose, subject = '' }) => {
             </div>
           </div>
 
-          {/* Right Side: Form */}
+          {/* Höger sida: Formulär */}
           <div className="contact-modal-form-wrapper">
             <ContactForm preselectedSubject={subject} />
           </div>
@@ -143,15 +143,14 @@ const ContactModal = ({ isOpen, onClose, subject = '' }) => {
           }
         }
         
-        /* Seamlessly integrate ContactForm into the modal */
+        /* Integrera ContactForm sömlöst i modalen */
         .contact-modal-form-wrapper > div {
           padding: 0 !important;
           border: none !important;
           background-color: transparent !important;
         }
         
-        /* Hide the redundant heading from ContactForm if desired, or keep it. 
-           Since ContactForm has an h3 heading, we can hide it to avoid double headings */
+        /* Dölj extra rubrik från ContactForm för att undvika dubbla rubriker */
         .contact-modal-form-wrapper > div > h3:first-of-type {
           display: none;
         }

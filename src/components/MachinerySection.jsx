@@ -17,7 +17,7 @@ const MachinerySection = () => {
     if ('showAll' in updates) {
       setShowAll(updates.showAll);
     }
-    // Auto-reset showAll if we are changing filters
+    // Återställ showAll automatiskt när filter ändras
     if (('category' in updates || 'q' in updates) && updates.showAll !== true) {
       setShowAll(false);
     }
@@ -114,7 +114,7 @@ const MachinerySection = () => {
         </div>
 
         <div className="machinery-filters">
-          {/* Search Input */}
+          {/* Sökfält */}
           <div className="search-wrapper">
             <div className="search-icon">
               <Search size={20} />
@@ -137,7 +137,7 @@ const MachinerySection = () => {
             )}
           </div>
 
-            {/* Categories */}
+            {/* Kategorier */}
             {isMobile ? (
               <div className="fade-up mobile-category-nav delay-100">
                 <button

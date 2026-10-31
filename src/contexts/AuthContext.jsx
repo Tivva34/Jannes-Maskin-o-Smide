@@ -28,8 +28,8 @@ export const AuthProvider = ({ children }) => {
         if (!error && data) {
           setProfile(data);
         } else {
-          // Fallback: If migration hasn't been run or user_profiles fails, 
-          // check if the user is in the old `admins` table.
+          // Reservlösning: Om migreringen inte har körts eller user_profiles misslyckas, 
+          // kontrollera om användaren finns i den äldre tabellen `admins`.
           const { data: adminData, error: adminError } = await supabase
             .from('admins')
             .select('user_id')
@@ -50,7 +50,7 @@ export const AuthProvider = ({ children }) => {
       }
     };
 
-    // Get existing session on mount (handles page refresh)
+    // Hämta befintlig session vid montering (hanterar siduppdatering)
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!mounted) return;
       setSession(session);
@@ -60,15 +60,15 @@ export const AuthProvider = ({ children }) => {
       });
     });
 
-    // Subscribe to future auth state changes (login, logout, token refresh)
+    // Prenumerera på framtida ändringar i autentiseringsstatus (inloggning, utloggning, tokenuppdatering)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (!mounted) return;
       setSession(session);
       setUser(session?.user ?? null);
       fetchProfile(session?.user ?? null);
 
-      // If Supabase successfully processes a recovery link, route the user manually
-      // This avoids HashRouter conflicts with Supabase's implicit flow tokens in the URL hash.
+      // Om Supabase framgångsrikt hanterar en återställningslänk, dirigera användaren manuellt.
+      // Detta undviker konflikter mellan HashRouter och Supabases implicita flödestokens i URL-hashen.
       if (event === 'PASSWORD_RECOVERY') {
         window.location.hash = '#/admin/update-password';
       }
@@ -81,8 +81,8 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   /**
-   * Sign in with email and password.
-   * Returns { data, error } – caller handles error display.
+   * Logga in med e-post och lösenord.
+   * Returnerar { data, error } – anroparen hanterar felvisning.
    */
   const signIn = async (email, password) => {
     const { data, error } = await supabase.auth.signInWithPassword({
@@ -93,8 +93,8 @@ export const AuthProvider = ({ children }) => {
   };
 
   /**
-   * Sign out current user.
-   * Returns { error } – caller handles error display.
+   * Logga ut aktuell användare.
+   * Returnerar { error } – anroparen hanterar felvisning.
    */
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
@@ -102,16 +102,16 @@ export const AuthProvider = ({ children }) => {
   };
 
   /**
-   * Reset password for email.
+   * Återställ lösenord via e-post.
    */
   const resetPassword = async (email) => {
     const baseUrl = window.location.origin;
     const basePath = import.meta.env.BASE_URL || '/';
 
-    // We send the user to the ROOT of the application, NOT directly to the hash route.
-    // This allows Supabase to put the tokens cleanly in the hash (#access_token=...) 
-    // or query string (?code=...) without colliding with React HashRouter's own routes.
-    // The onAuthStateChange listener will catch 'PASSWORD_RECOVERY' and navigate correctly.
+    // Skicka användaren till applikationens ROT, INTE direkt till hash-rutten.
+    // Detta gör att Supabase kan placera tokens rent i hashen (#access_token=...) 
+    // eller frågesträngen (?code=...) utan att krocka med React HashRouters egna rutter.
+    // Lyssnaren onAuthStateChange fångar upp 'PASSWORD_RECOVERY' och navigerar rätt.
     const redirectUrl = `${baseUrl}${basePath}`.replace(/([^:]\/)\/+/g, "$1");
 
     const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
@@ -121,7 +121,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   /**
-   * Update user password.
+   * Uppdatera användarens lösenord.
    */
   const updatePassword = async (newPassword) => {
     const { data, error } = await supabase.auth.updateUser({
@@ -138,8 +138,8 @@ export const AuthProvider = ({ children }) => {
 };
 
 /**
- * useAuth – consume the AuthContext.
- * Throws if used outside of <AuthProvider>.
+ * useAuth – konsumera AuthContext.
+ * Kastar fel om den används utanför <AuthProvider>.
  */
 // eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => {

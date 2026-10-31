@@ -15,7 +15,7 @@ const InventoryCard = ({ item }) => {
   const displayItemName = lang === 'en' ? (item.name_en || item.name) : item.name;
   const displayItemDesc = lang === 'en' ? (item.description_en || item.description) : item.description;
 
-  // Shorten description for card view
+  // Korta ner beskrivningen för kortvyn
   const shortDesc = displayItemDesc 
     ? (displayItemDesc.length > 100 ? displayItemDesc.substring(0, 100) + '...' : displayItemDesc)
     : '';
@@ -46,7 +46,7 @@ const InventoryCard = ({ item }) => {
         if (img) img.style.transform = 'scale(1)';
       }}
     >
-      {/* Image */}
+      {/* Bild */}
       <div style={{ position: 'relative', height: '240px', overflow: 'hidden', backgroundColor: '#000' }}>
         <img
           className="card-image"
@@ -74,7 +74,7 @@ const InventoryCard = ({ item }) => {
         )}
       </div>
 
-      {/* Content */}
+      {/* Innehåll */}
       <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
         <div style={{ marginBottom: '1rem' }}>
           <h3 style={{ fontSize: '1.375rem', marginBottom: '0.5rem', color: 'var(--text-primary)' }}>{displayItemName}</h3>

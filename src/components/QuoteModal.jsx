@@ -9,11 +9,11 @@ const QuoteModal = ({ isOpen, onClose, preselectedType, machine, inventoryItem }
   if (isOpen !== prevIsOpen) {
     setPrevIsOpen(isOpen);
     if (isOpen) {
-      setFormStatus('idle');   // Prevent background scroll when open
+      setFormStatus('idle'); // Återställ status när modalen öppnas
     }
   }
 
-// Reset status on open
+  // Förhindra bakgrundsskroll när modalen är öppen
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -25,7 +25,7 @@ const QuoteModal = ({ isOpen, onClose, preselectedType, machine, inventoryItem }
     };
   }, [isOpen]);
 
-  // Handle escape key
+  // Stäng modalen med Escape-tangenten
   useEffect(() => {
     const handleEsc = (e) => {
       if (e.key === 'Escape' && isOpen) {
@@ -98,7 +98,7 @@ const QuoteModal = ({ isOpen, onClose, preselectedType, machine, inventoryItem }
           inventoryItem={inventoryItem}
           onClose={onClose}
           onSuccess={() => {
-            // Can choose to auto-close after success if desired, but QuoteRequestForm handles success state nicely.
+            // Kan vid behov stängas automatiskt efter lyckat inskick, men QuoteRequestForm visar själv bekräftelsevyn.
           }}
           onStatusChange={setFormStatus}
         />

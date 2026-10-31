@@ -4,11 +4,11 @@ import { supabase } from './lib/supabase';
 import { AuthProvider } from './contexts/AuthContext';
 import { LanguageProvider } from './contexts/LanguageContext';
 
-// Public layout components
+// Publika layoutkomponenter
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 
-// Public pages
+// Publika sidor
 import HomePage           from './pages/HomePage';
 import MachineryPage      from './pages/MachineryPage';
 import MachineDetailsPage from './pages/MachineDetailsPage';
@@ -18,14 +18,14 @@ import ContactPage        from './pages/ContactPage';
 import InventoryPage      from './pages/InventoryPage';
 import InventoryDetailsPage from './pages/InventoryDetailsPage';
 
-// Admin pages (lazy loaded)
+// Adminsidor (laddas vid behov)
 const AdminLayout = React.lazy(() => import('./components/admin/AdminLayout'));
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Utility helpers
+// Hjälpkomponenter
 // ─────────────────────────────────────────────────────────────────────────────
 
-// Scroll to top on every route change (including same-page navigation, but excluding browser back/forward)
+// Skrolla till toppen vid varje ruttbyte (exklusive webbläsarens bakåt/framåt)
 const ScrollToTop = () => {
   const location = useLocation();
   const navType = useNavigationType();
@@ -39,7 +39,7 @@ const ScrollToTop = () => {
   return null;
 };
 
-// Intersection Observer for scroll animations — runs on every route change
+// IntersectionObserver för skrollanimationer – körs vid varje ruttbyte
 const AnimationObserver = () => {
   const { pathname } = useLocation();
   useEffect(() => {
@@ -69,7 +69,7 @@ const AnimationObserver = () => {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Subpage routes that need a top-offset on mobile (excludes '/' homepage)
+// Undersidor som behöver extra toppmarginal för den fasta navigationsraden (exkluderar '/')
 // ─────────────────────────────────────────────────────────────────────────────
 const SUBPAGE_ROUTES = [
   '/maskiner',
@@ -82,7 +82,7 @@ const SUBPAGE_ROUTES = [
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
-// PUBLIC LAYOUT – Navbar + public routes + Footer + mobile CTA
+// PUBLIK LAYOUT – Navbar + publika rutter + Footer
 // ─────────────────────────────────────────────────────────────────────────────
 function PublicLayout() {
   const { pathname } = useLocation();
@@ -107,19 +107,19 @@ function PublicLayout() {
           <Route path="/kontakt"          element={<ContactPage />} />
           <Route path="/losore"           element={<InventoryPage />} />
           <Route path="/losore/:slug"       element={<InventoryDetailsPage />} />
-          {/* Fallback: unknown public routes → home */}
+          {/* Reservrutt: okända publika rutter → startsidan */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
       <Footer />
 
-      {/* Fixed Mobile CTA - Borttagen enligt önskemål */}
+      {/* Fast mobil-CTA – borttagen enligt önskemål */}
       {/* <MobileCta /> */}
 
       <style>{`
         /*
-         * Subpage top offset.
-         * Compensates for the fixed header so content never slides behind the navbar.
+         * Toppmarginal för undersidor.
+         * Kompenserar för den fasta headern så att innehållet inte hamnar bakom navigeringen.
          */
         @media (max-width: 1023px) {
           .subpage-main {
@@ -138,7 +138,7 @@ function PublicLayout() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// APP ROOT
+// APPROT
 // ─────────────────────────────────────────────────────────────────────────────
 function App() {
   const [isRecovering, setIsRecovering] = useState(() => {
@@ -231,14 +231,14 @@ function App() {
     <HashRouter>
       <AuthProvider>
         <Routes>
-          {/* Admin routes – completely separate layout, no Navbar/Footer */}
+          {/* Adminrutter – helt separat layout utan publik Navbar/Footer */}
           <Route path="/admin/*" element={
             <Suspense fallback={<div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>Laddar admin...</div>}>
               <AdminLayout />
             </Suspense>
           } />
 
-          {/* Public routes – with Navbar, Footer and mobile CTA */}
+          {/* Publika rutter – med Navbar och Footer */}
           <Route path="/*" element={<PublicLayout />} />
         </Routes>
       </AuthProvider>

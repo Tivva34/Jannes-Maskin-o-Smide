@@ -61,7 +61,7 @@ const AboutPage = () => {
               </div>
             </div>
 
-            {/* Logo */}
+            {/* Logotyp */}
             <div className="about-hero-logo fade-up delay-300">
               <div className="about-hero-logo-wrap">
                 <img
@@ -176,7 +176,7 @@ const AboutPage = () => {
         </div>
       </section>
 
-      {/* ── Styles ──────────────────────────────────────────────── */}
+      {/* ── Stilar ──────────────────────────────────────────────── */}
       <style>{`
         .about-hero-section {
           padding-top: 2rem !important;
@@ -341,7 +341,7 @@ const AboutPage = () => {
           }
         }
       `}</style>
-      {/* ── Contact Modal ───────────────────────────────────────── */}
+      {/* ── Kontaktmodal ───────────────────────────────────────── */}
       <ContactModal
         isOpen={contactModalOpen}
         onClose={() => setContactModalOpen(false)}

@@ -4,7 +4,7 @@ import { Menu, X, Sun, Moon } from 'lucide-react';
 import { companyInfo } from '../data/company';
 import { useLang } from '../contexts/LanguageContext';
 
-/* ── Language switcher button ─────────────────────────────── */
+/* ── Språkväljarknapp ─────────────────────────────────────── */
 const LangSwitch = ({ mobile = false, lang, setLang }) => (
   <div style={{
     display: 'flex',
@@ -74,20 +74,20 @@ const Navbar = () => {
   const { lang, setLang, t } = useLang();
   const [prevPathname, setPrevPathname] = useState(location.pathname);
 
-  // Close mobile menu on route change
+  // Stäng mobilmenyn vid ruttbyte
   if (location.pathname !== prevPathname) {
     setPrevPathname(location.pathname);
     setMobileMenuOpen(false);
   }
 
-  // Scroll detection
+  // Känn av skrollposition
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Lock body scroll when menu is open – without layout shift
+  // Lås bakgrundsskroll när menyn är öppen – utan layoutförskjutning
   useEffect(() => {
     if (mobileMenuOpen) {
       const scrollY = window.scrollY;
@@ -152,7 +152,7 @@ const Navbar = () => {
       <header className={`site-header${isScrolled ? ' site-header--scrolled' : ''}`}>
         <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
 
-          {/* Logo */}
+          {/* Logotyp */}
           <Link
             to="/"
             onClick={closeMenu}
@@ -170,7 +170,7 @@ const Navbar = () => {
             <span style={{ color: 'var(--accent-primary)' }}>MASKIN &amp; SMIDE</span>
           </Link>
 
-          {/* Desktop Nav */}
+          {/* Desktop-navigering */}
           <nav className="desktop-nav" aria-label="Primär navigation">
             <ul style={{ display: 'flex', gap: '2rem', listStyle: 'none', margin: 0, padding: 0 }}>
               {navLinks.map((link) => (
@@ -196,15 +196,15 @@ const Navbar = () => {
             </ul>
           </nav>
 
-          {/* Right-side controls */}
+          {/* Kontroller till höger */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
 
-            {/* Language switcher – desktop */}
+            {/* Språkväljare – desktop */}
             <div className="desktop-nav">
               <LangSwitch lang={lang} setLang={setLang} />
             </div>
 
-            {/* Theme toggle – always visible */}
+            {/* Temaväljare – alltid synlig */}
             <button
               onClick={toggleTheme}
               aria-label={t('nav.toggleTheme')}
@@ -223,7 +223,7 @@ const Navbar = () => {
               {isLightMode ? <Moon size={22} /> : <Sun size={22} />}
             </button>
 
-            {/* Desktop CTA */}
+            {/* Desktop-CTA */}
             <Link
               to="/kontakt"
               className="btn btn-primary desktop-cta"
@@ -232,7 +232,7 @@ const Navbar = () => {
               {t('nav.contactCta')}
             </Link>
 
-            {/* Hamburger / Close – mobile only */}
+            {/* Menyknapp / Stäng – endast mobil */}
             <button
               className="mobile-toggle"
               onClick={toggleMenu}
@@ -259,7 +259,7 @@ const Navbar = () => {
         </div>
       </header>
 
-      {/* ── MOBILE MENU OVERLAY ─────────────────────────────────── */}
+      {/* ── MOBILMENY ───────────────────────────────────────────── */}
       <div
         id="mobile-menu"
         role="dialog"
@@ -282,7 +282,7 @@ const Navbar = () => {
           pointerEvents: mobileMenuOpen ? 'auto' : 'none',
         }}
       >
-        {/* Top bar inside overlay */}
+        {/* Topprad i mobilmenyn */}
         <div style={{
           display: 'flex',
           justifyContent: 'space-between',
@@ -333,7 +333,7 @@ const Navbar = () => {
           </button>
         </div>
 
-        {/* Nav links */}
+        {/* Navigeringslänkar */}
         <nav aria-label="Mobilnavigation" style={{ flex: 1, padding: '1rem 1.5rem' }}>
           <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
             {navLinks.map((link) => (
@@ -361,7 +361,7 @@ const Navbar = () => {
           </ul>
         </nav>
 
-        {/* CTA buttons + language + theme */}
+        {/* CTA-knappar + språk + tema */}
         <div style={{
           padding: '1.5rem',
           display: 'flex',
@@ -386,12 +386,12 @@ const Navbar = () => {
             {t('nav.callDirect')}
           </a>
 
-          {/* Language switcher – mobile */}
+          {/* Språkväljare – mobil */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginTop: '0.25rem' }}>
             <LangSwitch mobile lang={lang} setLang={setLang} />
           </div>
 
-          {/* Theme toggle */}
+          {/* Temaväljare */}
           <button
             onClick={toggleTheme}
             aria-label={t('nav.toggleTheme')}
@@ -414,7 +414,7 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* ── Styles ─────────────────────────────────────────────── */}
+      {/* ── Stilar ─────────────────────────────────────────────── */}
       <style>{`
         .site-header {
           position: fixed;
@@ -443,7 +443,7 @@ const Navbar = () => {
           .mobile-menu-overlay { display: none !important; }
         }
 
-        /* --- Mobile --- */
+        /* --- Mobil --- */
         @media (max-width: 1023px) {
           .desktop-nav  { display: none !important; }
           .desktop-cta  { display: none !important; }

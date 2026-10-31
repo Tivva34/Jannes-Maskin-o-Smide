@@ -15,7 +15,7 @@ const LoginPage = () => {
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
 
-  // Already logged in → go straight to /admin
+  // Redan inloggad → gå direkt till /admin
   useEffect(() => {
     if (!loading && user) {
       navigate('/admin', { replace: true });
@@ -53,7 +53,7 @@ const LoginPage = () => {
     const { error: authError } = await signIn(email.trim(), password);
 
     if (authError) {
-      // Translate common Supabase error messages to Swedish
+      // Översätt vanliga felmeddelanden från Supabase till svenska
       if (authError.message.includes('Invalid login credentials')) {
         setError('Fel e-postadress eller lösenord.');
       } else if (authError.message.includes('Email not confirmed')) {
@@ -65,10 +65,10 @@ const LoginPage = () => {
       }
       setSubmitting(false);
     }
-    // On success, onAuthStateChange fires → user is set → useEffect above redirects
+    // Vid lyckad inloggning triggas onAuthStateChange → user sätts → useEffect ovan omdirigerar
   };
 
-  // While initial session check runs, show spinner
+  // Visa laddningsindikator medan den inledande sessionskontrollen körs
   if (loading) {
     return (
       <div style={styles.loadingContainer}>
@@ -80,11 +80,11 @@ const LoginPage = () => {
 
   return (
     <div style={styles.page}>
-      {/* Background decoration */}
+      {/* Bakgrundsdekoration */}
       <div style={styles.bgGlow} aria-hidden="true" />
 
       <div style={styles.card}>
-        {/* Logo / Header */}
+        {/* Logotyp och rubrik */}
         <div style={styles.header}>
           <div style={styles.logoMark}>
             <span style={{ color: 'var(--accent-primary)', fontWeight: 800, fontSize: '1.1rem', fontFamily: 'Outfit, sans-serif' }}>
@@ -97,7 +97,7 @@ const LoginPage = () => {
           </p>
         </div>
 
-        {/* Error alert */}
+        {/* Felmeddelande */}
         {error && (
           <div style={styles.errorBox} role="alert">
             <AlertCircle size={16} style={{ flexShrink: 0, marginTop: '1px' }} />
@@ -105,16 +105,16 @@ const LoginPage = () => {
           </div>
         )}
 
-        {/* Success alert */}
+        {/* Bekräftelsemeddelande */}
         {successMessage && (
           <div style={{...styles.errorBox, backgroundColor: 'rgba(34, 197, 94, 0.1)', borderColor: 'rgba(34, 197, 94, 0.25)', color: '#22c55e'}} role="alert">
             <span>{successMessage}</span>
           </div>
         )}
 
-        {/* Login form */}
+        {/* Inloggningsformulär */}
         <form onSubmit={handleSubmit} noValidate style={styles.form}>
-          {/* Email */}
+          {/* E-post */}
           <div style={styles.fieldGroup}>
             <label htmlFor="login-email" style={styles.label}>
               E-postadress
@@ -134,7 +134,7 @@ const LoginPage = () => {
             />
           </div>
 
-          {/* Password */}
+          {/* Lösenord */}
           {!isForgotPassword && (
             <div style={styles.fieldGroup}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -175,7 +175,7 @@ const LoginPage = () => {
             </div>
           )}
 
-          {/* Submit */}
+          {/* Skicka-knapp */}
           <button
             id="login-submit"
             type="submit"
@@ -210,7 +210,7 @@ const LoginPage = () => {
           )}
         </form>
 
-        {/* Footer note */}
+        {/* Sidfotsnotering */}
         <p style={styles.footerNote}>
           Adminåtkomst hanteras via Supabase Auth.
         </p>
@@ -227,7 +227,7 @@ const LoginPage = () => {
   );
 };
 
-/* ── Styles ──────────────────────────────────────────────────────────────── */
+/* ── Stilar ──────────────────────────────────────────────────────────────── */
 const styles = {
   page: {
     minHeight: '100vh',

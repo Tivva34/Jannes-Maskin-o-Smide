@@ -139,7 +139,7 @@ export default function SalesPanel({ machines = [], inventory = [] }) {
     return items.filter(item => new Date(item.sold_at) >= cutoff);
   };
 
-  // KPIs
+  // Nyckeltal (KPI:er)
   const recentSales = filterSalesByDate(sales);
   
   const totalSalesValue = recentSales.reduce((acc, sale) => acc + (sale.sold_price || 0), 0);
@@ -162,7 +162,7 @@ export default function SalesPanel({ machines = [], inventory = [] }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', animation: 'fadeIn 0.3s ease' }}>
       
-      {/* Header & Filter */}
+      {/* Rubrik och filter */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
         <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>Översikt</h2>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
@@ -216,7 +216,7 @@ export default function SalesPanel({ machines = [], inventory = [] }) {
       <ChartCard title="Registrerade försäljningar">
         {!noData ? (
           <>
-            {/* Desktop table */}
+            {/* Tabell för datorvy */}
             <div className="admin-table-wrap" style={{ overflowX: 'auto', width: '100%' }}>
               <table style={{ width: '100%', minWidth: '500px', borderCollapse: 'collapse', textAlign: 'left' }}>
                 <thead>
@@ -252,7 +252,7 @@ export default function SalesPanel({ machines = [], inventory = [] }) {
               </table>
             </div>
 
-            {/* Mobile card list */}
+            {/* Kortlista för mobilvy */}
             <div className="admin-card-list">
               {recentSales.map((sale) => (
                 <div 
@@ -287,7 +287,7 @@ export default function SalesPanel({ machines = [], inventory = [] }) {
         )}
       </ChartCard>
 
-      {/* ─── Detail Modal ─── */}
+      {/* ─── Detaljmodal ─── */}
       {selectedSale && (
         <div 
           style={{
@@ -304,7 +304,7 @@ export default function SalesPanel({ machines = [], inventory = [] }) {
             }}
             onClick={e => e.stopPropagation()}
           >
-            {/* Modal Header */}
+            {/* Modalhuvud */}
             <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'var(--bg-surface)' }}>
               <div>
                 <h2 style={{ margin: '0 0 0.25rem 0', fontSize: '1.25rem', color: 'var(--text-primary)' }}>Försäljningsdetaljer</h2>
@@ -314,7 +314,7 @@ export default function SalesPanel({ machines = [], inventory = [] }) {
               </button>
             </div>
 
-            {/* Modal Body */}
+            {/* Modalinnehåll */}
             <div style={{ padding: '1.5rem', overflowY: 'auto' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                 

@@ -41,7 +41,7 @@ const InventoryPage = () => {
   const { t } = useLang();
 
   useEffect(() => {
-    // Dynamic page title for basic SEO
+    // Dynamisk sidtitel för grundläggande SEO
     document.title = `${t('inventory.heading')} | Jannes Maskin & Smide`;
 
     const fetchItems = async () => {
@@ -120,7 +120,7 @@ const InventoryPage = () => {
             gap: '1rem',
             marginBottom: '3rem',
           }}>
-            {/* Search Input */}
+            {/* Sökfält */}
             <div className="fade-up" style={{ position: 'relative', width: '100%', maxWidth: '400px', animationDelay: '0.35s' }}>
               <div style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', pointerEvents: 'none', display: 'flex', alignItems: 'center' }}>
                 <Search size={20} />
@@ -167,7 +167,7 @@ const InventoryPage = () => {
               )}
             </div>
 
-            {/* Categories */}
+            {/* Kategorier */}
             {isMobile ? (
               <div className="fade-up mobile-category-nav" style={{ animationDelay: '0.4s' }}>
                 <button
@@ -428,7 +428,7 @@ const InventoryPage = () => {
         </div>
       </section>
 
-      {/* Contact CTA Section */}
+      {/* Kontaktsektion (CTA) */}
       <section className="section" style={{ backgroundColor: 'var(--bg-surface)', borderTop: '1px solid var(--border-color)', padding: '4rem 0' }}>
         <div className="container" style={{ textAlign: 'center', maxWidth: '600px' }}>
           <MessageSquare size={40} color="var(--accent-primary)" style={{ margin: '0 auto 1.5rem' }} />

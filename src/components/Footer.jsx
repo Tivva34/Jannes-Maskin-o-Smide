@@ -15,7 +15,7 @@ const Footer = () => {
           marginBottom: '4rem',
         }}>
 
-          {/* Brand */}
+          {/* Varumärke */}
           <div style={{ gridColumn: '1 / -1', maxWidth: '300px' }}>
             <Link to="/" style={{ display: 'flex', flexDirection: 'column', fontWeight: '800', fontFamily: 'Outfit, sans-serif', lineHeight: '1', fontSize: '1.5rem', marginBottom: '1.5rem', textDecoration: 'none', color: 'inherit' }}>
               <span>JANNES</span>
@@ -24,7 +24,7 @@ const Footer = () => {
             <p style={{ color: 'var(--text-secondary)' }}>{t('footer.tagline')}</p>
           </div>
 
-          {/* Nav links */}
+          {/* Navigeringslänkar */}
           <div>
             <h4 style={{ color: 'var(--text-primary)', marginBottom: '1.5rem', fontSize: '1.125rem' }}>
               {t('footer.links')}
@@ -38,7 +38,7 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* Contact info */}
+          {/* Kontaktuppgifter */}
           <div>
             <h4 style={{ color: 'var(--text-primary)', marginBottom: '1.5rem', fontSize: '1.125rem' }}>
               {t('footer.contact')}
@@ -49,7 +49,7 @@ const Footer = () => {
             </address>
           </div>
 
-          {/* Actions */}
+          {/* Snabbåtgärder */}
           <div>
             <h4 style={{ color: 'var(--text-primary)', marginBottom: '1.5rem', fontSize: '1.125rem' }}>
               {t('footer.actions')}
@@ -62,7 +62,7 @@ const Footer = () => {
           </div>
         </div>
 
-        {/* Copyright */}
+        {/* Upphovsrätt */}
         <div style={{
           borderTop: '1px solid var(--border-color)',
           paddingTop: '2rem',

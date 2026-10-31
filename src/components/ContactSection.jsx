@@ -16,11 +16,11 @@ const ContactSection = () => {
 
         <div className="contact-grid">
 
-          {/* Contact Info */}
+          {/* Kontaktinformation */}
           <div>
             <div className="contact-cards-grid">
 
-              {/* Sales */}
+              {/* Försäljning */}
               <div style={cardStyle}>
                 <h3 className="contact-card-title">
                   {t('contact.sales')}
@@ -34,7 +34,7 @@ const ContactSection = () => {
                 </a>
               </div>
 
-              {/* Repair */}
+              {/* Reparation */}
               <div style={cardStyle}>
                 <h3 className="contact-card-title">
                   {t('contact.repair')}
@@ -49,7 +49,7 @@ const ContactSection = () => {
               </div>
             </div>
 
-            {/* Address */}
+            {/* Adress */}
             <div className="contact-address-wrap">
               <MapPin size={24} className="contact-address-icon" />
               <div>
@@ -70,7 +70,7 @@ const ContactSection = () => {
             </div>
           </div>
 
-          {/* Form */}
+          {/* Formulär */}
           <div>
             <ContactForm />
           </div>

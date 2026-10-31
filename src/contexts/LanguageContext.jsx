@@ -2,13 +2,13 @@ import { createContext, useContext, useState, useCallback } from 'react';
 import translations from '../i18n/translations';
 
 /* ─────────────────────────────────────────────────────────────
-   LanguageContext – lightweight i18n for the public site.
-   Admin panel is intentionally NOT wrapped.
+   LanguageContext – lättviktig språkhantering (i18n) för den publika sajten.
+   Adminpanelen är medvetet INTE omsluten.
 
-   Exposes:
-     lang      – current language code ('sv' | 'en')
-     setLang   – change language + persist to localStorage
-     t(key)    – resolve a dot-separated key, e.g. t('hero.title1')
+   Exponerar:
+     lang      – aktuell språkkod ('sv' | 'en')
+     setLang   – byt språk och spara i localStorage
+     t(key)    – slå upp en punktseparerad nyckel, t.ex. t('hero.title1')
    ───────────────────────────────────────────────────────────── */
 
 const STORAGE_KEY = 'hms_lang';
@@ -61,8 +61,8 @@ export const LanguageProvider = ({ children }) => {
 };
 
 /**
- * useLang – consume the LanguageContext.
- * Must be used inside <LanguageProvider>.
+ * useLang – konsumera LanguageContext.
+ * Måste användas inuti <LanguageProvider>.
  */
 // eslint-disable-next-line react-refresh/only-export-components
 export const useLang = () => {

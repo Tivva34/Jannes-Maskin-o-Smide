@@ -114,7 +114,7 @@ export default function StatisticsPanel({ onNavigate }) {
     return months;
   };
 
-  // Time filtering logic for items created within the period
+  // Tidsfiltreringslogik för objekt som skapats inom perioden
   const filterByDate = useCallback((items) => {
     if (timeFilter === 'all') return items;
     
@@ -136,7 +136,7 @@ export default function StatisticsPanel({ onNavigate }) {
   }, [timeFilter]);
 
 
-  // KPIs
+  // Nyckeltal (KPI:er)
   const allStock = [...machines, ...inventory];
   const isAllTime = timeFilter === 'all';
   
@@ -170,17 +170,17 @@ export default function StatisticsPanel({ onNavigate }) {
   const soldStockAll = allStock.filter(item => item.status === 'sold').length;
   const newQuotesAll = quotes.filter(q => q.status === 'new').length;
 
-  // Time-filtered quotes
+  // Tidsfiltrerade förfrågningar
   const recentQuotes = useMemo(() => filterByDate(quotes), [filterByDate, quotes]);
   const recentMachines = useMemo(() => filterByDate(machines), [filterByDate, machines]);
   const recentInventory = useMemo(() => filterByDate(inventory), [filterByDate, inventory]);
   const recentStock = useMemo(() => [...recentMachines, ...recentInventory], [recentMachines, recentInventory]);
   
-  // Group quotes over time
+  // Gruppera förfrågningar över tid
   const quotesOverTime = useMemo(() => {
     if (recentQuotes.length === 0) return [];
     
-    // Sort oldest to newest
+    // Sortera äldst till nyast
     const sorted = [...recentQuotes].sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
     const grouped = {};
     
@@ -200,7 +200,7 @@ export default function StatisticsPanel({ onNavigate }) {
     return Object.entries(grouped).map(([name, count]) => ({ name, count }));
   }, [recentQuotes, timeFilter]);
 
-  // Quotes by status
+  // Förfrågningar per status
   const quotesByStatus = useMemo(() => {
     return QUOTE_STATUS_OPTIONS.map(opt => ({
       name: opt.label,
@@ -209,7 +209,7 @@ export default function StatisticsPanel({ onNavigate }) {
     })).filter(item => item.value > 0);
   }, [recentQuotes]);
 
-  // Quotes by type
+  // Förfrågningar per typ
   const quotesByType = useMemo(() => {
     const grouped = {};
     recentQuotes.forEach(q => {
@@ -224,7 +224,7 @@ export default function StatisticsPanel({ onNavigate }) {
       .sort((a, b) => b.count - a.count);
   }, [recentQuotes]);
 
-  // Stock status
+  // Lagerstatus
   const stockByStatus = useMemo(() => {
     const statuses = ['published', 'draft', 'reserved', 'sold'];
     return statuses.map(s => {
@@ -237,7 +237,7 @@ export default function StatisticsPanel({ onNavigate }) {
     }).filter(item => item.value > 0);
   }, [recentStock]);
 
-  // Stock by category
+  // Lager per kategori
   const stockByCategory = useMemo(() => {
     const grouped = {};
     recentStock.forEach(item => {
@@ -263,7 +263,7 @@ export default function StatisticsPanel({ onNavigate }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', animation: 'fadeIn 0.3s ease' }}>
       
-      {/* Header & Filter */}
+      {/* Rubrik och filter */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
         <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>Översikt</h2>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
@@ -306,7 +306,7 @@ export default function StatisticsPanel({ onNavigate }) {
         Tidsfiltret påverkar hela vyn.
       </p>
 
-      {/* KPIs */}
+      {/* Nyckeltal (KPI:er) */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: '1.5rem' }}>
         <KPICard title={isHistorical ? 'Tillkommet Lager' : 'Totalt Lager'} subtitle={isHistorical ? 'Skapade objekt' : 'Nuvarande saldo'} value={isHistorical ? recentStock.length : totalStockAll} icon={PackageOpen} color="#3b82f6" onClick={() => onNavigate && onNavigate('machines', 'all')} noData={false} />
         <KPICard title="Publicerat" subtitle={isHistorical ? undefined : 'Nuvarande status'} value={publishedStockAll} icon={TrendingUp} color="#22c55e" onClick={() => onNavigate && onNavigate('machines', 'published')} noData={isHistorical} />
@@ -316,7 +316,7 @@ export default function StatisticsPanel({ onNavigate }) {
       </div>
 
 
-      {/* Grid for charts */}
+      {/* Rutnät för diagram */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 340px), 1fr))', gap: '1.5rem' }}>
         
         {/* Förfrågningar över tid */}

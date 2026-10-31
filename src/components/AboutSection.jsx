@@ -3,7 +3,7 @@ import { useLang } from '../contexts/LanguageContext';
 const AboutSection = () => {
   const { t } = useLang();
   
-  // Note: if t('about.highlights') is somehow undefined, we provide a fallback
+  // Obs: om t('about.highlights') av någon anledning saknas används en reservlista
   const highlights = t('about.highlights') || [
     { title: "Erfarenhet", desc: "Sedan 2002" },
     { title: "Personlig service", desc: "Direkt kontakt med rätt person" },
