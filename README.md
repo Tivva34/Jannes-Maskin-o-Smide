@@ -1,5 +1,7 @@
 # Jannes Maskin & Smide
 
+**Live website:** [https://tivva34.github.io/Jannes-Maskin-o-Smide](https://tivva34.github.io/Jannes-Maskin-o-Smide)
+
 Web platform and internal administration system for **Jannes Maskin & Smide AB**, a machinery sales, spare parts, workshop, and metalworking company based in Värmland, Sweden.
 
 The application provides a bilingual public website (Swedish and English) for browsing machinery and inventory and submitting quote inquiries, paired with a role-based administration panel for managing catalog listings, customer email threads, sales records, statistics, and staff accounts.
