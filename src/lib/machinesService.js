@@ -1,26 +1,11 @@
 import { supabase } from './supabase';
+import { generateSlug } from './slugUtils';
 
 // ─────────────────────────────────────────────────────────────
 // Hjälpfunktioner för slug
 // ─────────────────────────────────────────────────────────────
 
-/**
- * Omvandla ett maskinnamn till en URL-vänlig slug.
- * Hanterar svenska tecken: å→a, ä→a, ö→o
- */
-export function generateSlug(name) {
-  return name
-    .toLowerCase()
-    .replace(/å/g, 'a')
-    .replace(/ä/g, 'a')
-    .replace(/ö/g, 'o')
-    .replace(/é|è|ê/g, 'e')
-    .replace(/[^a-z0-9\s-]/g, '')
-    .trim()
-    .replace(/\s+/g, '-')
-    .replace(/-+/g, '-')
-    .replace(/^-|-$/g, '');
-}
+export { generateSlug };
 
 /**
  * Säkerställ att en slug är unik i databasen.
@@ -166,10 +151,10 @@ export async function getSimilarMachines(currentMachineId, category, limitCount 
 
 /**
  * Skapa en ny maskin.
- * Genererar och avduplicerar slug automatiskt.
+ * Genererar och avduplicerar slug automatiskt om inte en specifik slug skickas med.
  */
 export async function createMachine(fields) {
-  const baseSlug = generateSlug(fields.name);
+  const baseSlug = fields.slug ? generateSlug(fields.slug) : generateSlug(fields.name);
   const slug = await ensureUniqueSlug(baseSlug);
 
   const { data, error } = await supabase
@@ -181,7 +166,7 @@ export async function createMachine(fields) {
       category:    fields.category?.trim()    || 'other',
       type:        fields.type?.trim()        || null,
       year:        fields.year?.trim()        || null,
-      price:       fields.price !== '' ? parseInt(fields.price, 10) : null,
+      price:       fields.price !== '' && fields.price !== null ? parseInt(fields.price, 10) : null,
       description: fields.description?.trim() || null,
       description_en: fields.description_en?.trim() || null,
       status:      fields.status             || 'draft',
@@ -198,27 +183,36 @@ export async function createMachine(fields) {
 
 /**
  * Uppdatera en befintlig maskin.
- * Slug genereras INTE om automatiskt – uppdateras bara om den uttryckligen ändras.
+ * Normaliserar och säkerställer unikhet för slug (exklusive maskinens eget ID) om fields.slug skickas med.
  */
 export async function updateMachine(id, fields) {
+  const updatePayload = {
+    name:        fields.name.trim(),
+    name_en:     fields.name_en?.trim()     || null,
+    category:    fields.category?.trim()    || 'other',
+    type:        fields.type?.trim()        || null,
+    year:        fields.year?.trim()        || null,
+    price:       fields.price !== '' && fields.price !== null ? parseInt(fields.price, 10) : null,
+    description: fields.description?.trim() || null,
+    description_en: fields.description_en?.trim() || null,
+    status:      fields.status,
+    features:    fields.features            || [],
+    features_en: fields.features_en         || null,
+    specs:       fields.specs               || {},
+    specs_en:    fields.specs_en            || null,
+    // updated_at hanteras av databastriggern
+  };
+
+  if (fields.slug !== undefined) {
+    const rawSlug = fields.slug?.trim() || fields.name.trim();
+    const baseSlug = generateSlug(rawSlug);
+    const uniqueSlug = await ensureUniqueSlug(baseSlug, id);
+    updatePayload.slug = uniqueSlug;
+  }
+
   const { data, error } = await supabase
     .from('machines')
-    .update({
-      name:        fields.name.trim(),
-      name_en:     fields.name_en?.trim()     || null,
-      category:    fields.category?.trim()    || 'other',
-      type:        fields.type?.trim()        || null,
-      year:        fields.year?.trim()        || null,
-      price:       fields.price !== '' && fields.price !== null ? parseInt(fields.price, 10) : null,
-      description: fields.description?.trim() || null,
-      description_en: fields.description_en?.trim() || null,
-      status:      fields.status,
-      features:    fields.features            || [],
-      features_en: fields.features_en         || null,
-      specs:       fields.specs               || {},
-      specs_en:    fields.specs_en            || null,
-      // updated_at hanteras av databastriggern
-    })
+    .update(updatePayload)
     .eq('id', id)
     .select()
     .single();
