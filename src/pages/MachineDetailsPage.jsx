@@ -181,7 +181,7 @@ const MachineDetailsPage = () => {
           <div className="machine-details-grid">
 
             {/* Vänster – Bildgalleri */}
-            <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+            <div className="fade-up machine-details-media" style={{ display: 'flex', flexDirection: 'column' }}>
               <div style={{
                 backgroundColor: 'var(--bg-surface)',
                 borderRadius: 'var(--radius-lg)',
@@ -238,11 +238,10 @@ const MachineDetailsPage = () => {
                   ))}
                 </div>
               )}
-
             </div>
 
             {/* Höger – Maskininformation */}
-            <div className="fade-up delay-100" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+            <div className="fade-up delay-100 machine-details-info" style={{ display: 'flex', flexDirection: 'column' }}>
               <h1 style={{ fontSize: '2.5rem', color: 'var(--text-primary)', marginBottom: '0.5rem', lineHeight: 1.2 }}>
                 {displayMachineName}
               </h1>
@@ -311,8 +310,55 @@ const MachineDetailsPage = () => {
                   </div>
                 </div>
               )}
+            </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: 'auto', paddingTop: '4rem' }}>
+            {/* Undre rad: Liknande maskiner till vänster och kontaktknappar till höger, startar på exakt samma höjd på desktop */}
+            <div className="machine-details-bottom-row">
+              {similarMachines.length > 0 ? (
+                <div className="similar-machines-section">
+                  <h3 className="similar-machines-title">
+                    {t('machineDetail.similarMachines')}
+                  </h3>
+                  <div className="similar-machines-list">
+                    {similarMachines.map(m => {
+                      let thumbUrl = defaultImage;
+                      if (m.machine_images && m.machine_images.length > 0) {
+                        const primary = m.machine_images.find(img => img.is_primary);
+                        thumbUrl = primary ? primary.image_url : m.machine_images[0].image_url;
+                      }
+                      const simName = lang === 'en' ? (m.name_en || m.name) : m.name;
+                      return (
+                        <Link
+                          key={m.id}
+                          to={`/maskiner/${m.slug}`}
+                          className="similar-machine-card"
+                        >
+                          <div className="similar-machine-thumb">
+                            <img src={thumbUrl} alt={simName} loading="lazy" />
+                          </div>
+                          <div className="similar-machine-info">
+                            <div className="similar-machine-type">
+                              {tDb(m.type, 'machinery.types')}
+                            </div>
+                            <div className="similar-machine-name">
+                              {simName}
+                            </div>
+                            <div className="similar-machine-price">
+                              {m.price != null
+                                ? `${m.price.toLocaleString('sv-SE')} kr`
+                                : t('machineDetail.priceOnRequestShort')}
+                            </div>
+                          </div>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : (
+                <div className="similar-machines-placeholder" />
+              )}
+
+              <div className="machine-details-actions">
                 <button
                   onClick={() => handleOpenQuoteModal('machine')}
                   className="btn btn-primary"
@@ -320,9 +366,9 @@ const MachineDetailsPage = () => {
                 >
                   {t('machineDetail.contactMachine')}
                 </button>
-                <a 
-                  href="tel:+46700000003" 
-                  className="btn btn-secondary" 
+                <a
+                  href="tel:+46700000003"
+                  className="btn btn-secondary"
                   style={{ padding: '1rem', fontSize: '1.125rem', display: 'flex', justifyContent: 'center' }}
                   onClick={(e) => {
                     if (window.innerWidth >= 768) {
@@ -335,62 +381,8 @@ const MachineDetailsPage = () => {
                 </a>
               </div>
             </div>
-          </div>
 
-          {/* Liknande maskiner (placerade under rutnätet för att visas sist) */}
-          {similarMachines.length > 0 && (
-            <div className="similar-machines-section" style={{ marginTop: '4rem', paddingTop: '2rem', borderTop: '1px solid var(--border-color)' }}>
-              <h3 style={{ fontSize: '1.5rem', marginBottom: '2rem', color: 'var(--text-primary)' }}>
-                {t('machineDetail.similarMachines')}
-              </h3>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 280px), 1fr))', gap: '1.5rem' }}>
-                {similarMachines.map(m => {
-                  let thumbUrl = defaultImage;
-                  if (m.machine_images && m.machine_images.length > 0) {
-                    const primary = m.machine_images.find(img => img.is_primary);
-                    thumbUrl = primary ? primary.image_url : m.machine_images[0].image_url;
-                  }
-                  const simName = lang === 'en' ? (m.name_en || m.name) : m.name;
-                  return (
-                    <Link
-                      key={m.id}
-                      to={`/maskiner/${m.slug}`}
-                      style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        backgroundColor: 'var(--bg-surface)',
-                        border: '1px solid var(--border-color)',
-                        borderRadius: 'var(--radius-md)',
-                        overflow: 'hidden',
-                        textDecoration: 'none',
-                        transition: 'transform 0.2s, box-shadow 0.2s',
-                        color: 'inherit',
-                      }}
-                      onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = 'var(--shadow-md)'; }}
-                      onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'; }}
-                    >
-                      <div style={{ width: '100%', aspectRatio: '4/3', backgroundColor: 'var(--bg-primary)' }}>
-                        <img src={thumbUrl} alt={simName} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      </div>
-                      <div style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
-                        <div style={{ fontSize: '0.8125rem', color: 'var(--text-muted)', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                          {tDb(m.type, 'machinery.types')}
-                        </div>
-                        <div style={{ fontWeight: 600, color: 'var(--text-primary)', marginBottom: '1rem', fontSize: '1.125rem', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                          {simName}
-                        </div>
-                        <div style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '1.125rem', marginTop: 'auto' }}>
-                          {m.price != null
-                            ? `${m.price.toLocaleString('sv-SE')} kr`
-                            : t('machineDetail.priceOnRequestShort')}
-                        </div>
-                      </div>
-                    </Link>
-                  );
-                })}
-              </div>
-            </div>
-          )}
+          </div>
 
         </div>
       </div> {/* Slut på huvudinnehåll */}
@@ -400,10 +392,159 @@ const MachineDetailsPage = () => {
         .machine-details-grid {
           display: grid;
           grid-template-columns: 1fr;
-          gap: 3rem;
+          row-gap: 0;
+          column-gap: 3rem;
         }
+
+        /* Desktop (>= 992px): 2 kolumner */
         @media (min-width: 992px) {
-          .machine-details-grid { grid-template-columns: 1fr 1fr; }
+          .machine-details-grid {
+            grid-template-columns: 1fr 1fr;
+            align-items: start;
+          }
+        }
+
+        /* Bottenrad med liknande maskiner och kontaktknappar */
+        .machine-details-bottom-row {
+          display: flex;
+          flex-direction: column;
+          gap: 2rem;
+        }
+
+        /* Mobil och surfplatta (< 992px): Kontaktknapparna först, därefter liknande maskiner under båda knapparna */
+        @media (max-width: 991px) {
+          .machine-details-bottom-row .machine-details-actions {
+            order: 1;
+          }
+          .machine-details-bottom-row .similar-machines-section {
+            order: 2;
+            margin-top: 1rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border-color);
+          }
+          .machine-details-bottom-row .similar-machines-placeholder {
+            display: none;
+          }
+        }
+
+        /* Desktop (>= 992px): Spänner över båda kolumnerna, med Liknande maskiner till vänster och kontaktknappar till höger på exakt samma höjd */
+        @media (min-width: 992px) {
+          .machine-details-bottom-row {
+            grid-column: 1 / -1;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            row-gap: 3rem;
+            column-gap: 2.25rem;
+            align-items: start;
+            margin-top: 1rem;
+          }
+          .machine-details-bottom-row .similar-machines-section {
+            grid-column: 1;
+            margin-top: 0;
+            padding-top: 0;
+            border-top: none;
+          }
+          .machine-details-bottom-row .similar-machines-placeholder {
+            grid-column: 1;
+          }
+          .machine-details-bottom-row .machine-details-actions {
+            grid-column: 2;
+            margin-top: 3.15rem;
+            padding-top: 0;
+          }
+        }
+
+        .machine-details-actions {
+          display: flex;
+          flex-direction: column;
+          gap: 1rem;
+        }
+        .similar-machines-title {
+          font-size: 1.5rem;
+          margin-bottom: 1.5rem;
+          color: var(--text-primary);
+        }
+        .similar-machines-list {
+          display: flex;
+          flex-direction: column;
+          gap: 1.25rem;
+        }
+        .similar-machine-card {
+          display: flex;
+          flex-direction: row;
+          background-color: var(--bg-surface);
+          border: 1px solid var(--border-color);
+          border-radius: var(--radius-md);
+          overflow: hidden;
+          text-decoration: none;
+          transition: transform 0.2s, box-shadow 0.2s;
+          color: inherit;
+          min-height: 130px;
+        }
+        .similar-machine-card:hover {
+          transform: translateY(-4px);
+          box-shadow: var(--shadow-md);
+        }
+        .similar-machine-thumb {
+          width: 160px;
+          min-width: 160px;
+          max-width: 160px;
+          background-color: var(--bg-primary);
+          flex-shrink: 0;
+          aspect-ratio: 4/3;
+        }
+        .similar-machine-thumb img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          display: block;
+        }
+        .similar-machine-info {
+          padding: 1rem 1.25rem;
+          display: flex;
+          flex-direction: column;
+          flex-grow: 1;
+          min-width: 0;
+        }
+        .similar-machine-type {
+          font-size: 0.8125rem;
+          color: var(--text-muted);
+          margin-bottom: 0.35rem;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        .similar-machine-name {
+          font-weight: 600;
+          color: var(--text-primary);
+          margin-bottom: 0.5rem;
+          font-size: 1.0625rem;
+          line-height: 1.3;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+        .similar-machine-price {
+          font-weight: 700;
+          color: var(--text-primary);
+          font-size: 1.0625rem;
+          margin-top: auto;
+          white-space: nowrap;
+        }
+
+        @media (max-width: 540px) {
+          .similar-machine-card {
+            flex-direction: column;
+          }
+          .similar-machine-thumb {
+            width: 100%;
+            min-width: 100%;
+            max-width: 100%;
+          }
         }
       `}</style>
 
