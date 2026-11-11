@@ -6,7 +6,6 @@ import {
   createMachine,
   updateMachine,
   generateSlug,
-  ensureUniqueSlug,
   STATUS_OPTIONS,
   uploadMachineImage,
   deleteMachineImage,
@@ -181,11 +180,8 @@ const MachineFormPage = () => {
       setImages(data.machine_images || []);
       setDeletedImages([]);
       setSlugPreview(data.slug ?? '');
-      
-      const autoSlug = generateSlug(loadedName);
-      const isManual = data.slug && data.slug !== autoSlug;
-      setSlugManual(Boolean(isManual));
-      
+      setSlugManual(false);
+
       setLoadingData(false);
     }
     loadData();
@@ -261,10 +257,17 @@ const MachineFormPage = () => {
     let currentId = createdId || id;
     const actualIsEditing = isEditing || Boolean(createdId);
 
+    // Beräkna slutlig slug: använd manuell slug om användaren angett en, annars generera från namnet
+    const rawSlugCandidate = slugManual && slugPreview.trim()
+      ? slugPreview.trim()
+      : (slugPreview.trim() || generateSlug(form.name));
+    const finalSlug = generateSlug(rawSlugCandidate);
+
     try {
       if (actualIsEditing) {
         const { error: err } = await updateMachine(currentId, {
           ...form,
+          slug: finalSlug,
           features: cleanFeatures,
           features_en: cleanFeaturesEn.length > 0 ? cleanFeaturesEn : null,
           specs: specsObj,
@@ -272,10 +275,9 @@ const MachineFormPage = () => {
         });
         if (err) throw new Error('Kunde inte spara: ' + err.message);
       } else {
-        const uniqueSlug = await ensureUniqueSlug(slugPreview || generateSlug(form.name));
         const { data, error: err } = await createMachine({
           ...form,
-          slug: uniqueSlug,
+          slug: finalSlug,
           features: cleanFeatures,
           features_en: cleanFeaturesEn.length > 0 ? cleanFeaturesEn : null,
           specs: specsObj,
