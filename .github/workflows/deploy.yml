@@ -1,6 +1,12 @@
 name: Deploy GitHub Pages
 
 on:
+  workflow_dispatch:
+    inputs:
+      commit_sha:
+        description: 'Target commit SHA to validate and deploy'
+        required: true
+        default: '2fd8b294d5fd5c1ae8cefdc9fbafdad556177e72'
   workflow_run:
     workflows: ["CI"]
     types:
@@ -21,12 +27,19 @@ jobs:
   deploy:
     name: Deploy to GitHub Pages
     if: >-
-      github.event_name == 'workflow_run' &&
-      github.event.workflow_run.name == 'CI' &&
-      github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.head_branch == 'main' &&
-      github.event.workflow_run.event == 'push' &&
-      github.event.workflow_run.head_repository.full_name == github.repository
+      (
+        github.event_name == 'workflow_run' &&
+        github.event.workflow_run.name == 'CI' &&
+        github.event.workflow_run.conclusion == 'success' &&
+        github.event.workflow_run.head_branch == 'main' &&
+        github.event.workflow_run.event == 'push' &&
+        github.event.workflow_run.head_repository.full_name == github.repository
+      ) || (
+        github.event_name == 'workflow_dispatch' &&
+        github.repository == 'Tivva34/Jannes-Maskin-o-Smide' &&
+        github.ref == 'refs/heads/main' &&
+        inputs.commit_sha == '2fd8b294d5fd5c1ae8cefdc9fbafdad556177e72'
+      )
     runs-on: ubuntu-latest
     environment:
       name: github-pages
@@ -35,7 +48,7 @@ jobs:
       - name: Checkout validated commit
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.workflow_run.head_sha }}
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.commit_sha || github.event.workflow_run.head_sha }}
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -45,6 +58,12 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Run lint (verification)
+        run: npm run lint
+
+      - name: Run tests (verification)
+        run: npm test
 
       - name: Build application
         env:
